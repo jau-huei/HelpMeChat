@@ -2,88 +2,283 @@ using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
 using System;
 using System.Linq;
-using System.Timers;
-using FlaUI.Core.Input;
 using FlaUI.Core.Definitions;
 using System.Windows.Forms;
 using FlaUI.Core.WindowsAPI;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FlaUI.Core;
+using FlaUI.Core.Input;
+using System.Threading;
 
 namespace HelpMeChat
 {
     /// <summary>
-    /// UI 自动化监控类
+    /// UI 自动化监控类 (事件驱动 + 回退轮询)
     /// </summary>
-    public class UIAutomationMonitor
+    public class UIAutomationMonitor : IDisposable
     {
         /// <summary>
-        /// 自动化实例
+        /// 获取 UIA3 自动化实例，用于执行 UI 自动化操作。
         /// </summary>
         public UIA3Automation Automation { get; }
 
         /// <summary>
-        /// 定时器
-        /// </summary>
-        public System.Timers.Timer Timer { get; }
-
-        /// <summary>
-        /// 最后输入时间
+        /// 获取或设置最后一次输入的时间戳，用于跟踪用户活动。
         /// </summary>
         public DateTime LastInputTime { get; set; } = DateTime.MinValue;
 
         /// <summary>
-        /// 弹窗是否可见
+        /// 获取或设置弹出窗口是否可见的标志。
         /// </summary>
         public bool PopupVisible { get; set; } = false;
 
         /// <summary>
-        /// 正常轮询间隔
-        /// </summary>
-        public int NormalInterval { get; set; } = 1000;
-
-        /// <summary>
-        /// 快速检测间隔
-        /// </summary>
-        public int FastInterval { get; set; } = 300;
-
-        /// <summary>
-        /// 编辑元素
+        /// 获取或设置当前聚焦的编辑元素，用于监控文本输入。
         /// </summary>
         public AutomationElement? EditElement { get; set; }
 
         /// <summary>
-        /// 最后的值
+        /// 获取或设置编辑元素的最后文本值，用于检测文本变化。
         /// </summary>
-        public string LastValue { get; set; } = "";
+        public string LastValue { get; set; } = string.Empty;
 
         /// <summary>
-        /// 显示弹出窗口事件
+        /// 当需要显示弹出窗口时触发的事件，传递位置坐标和聊天历史列表。
         /// </summary>
         public event Action<double, double, List<(string, string)>>? ShowPopup;
 
         /// <summary>
-        /// 隐藏弹出窗口事件
+        /// 当需要隐藏弹出窗口时触发的事件。
         /// </summary>
         public event Action? HidePopup;
 
         /// <summary>
-        /// 构造函数
+        /// 获取或设置焦点变化事件处理器，用于监听 UI 焦点变化。
+        /// </summary>
+        private IDisposable? FocusChangedHandler { get; set; }
+
+        /// <summary>
+        /// 获取或设置值变化事件处理器，用于监听编辑元素的 Value 和 Name 属性变化。
+        /// </summary>
+        private IDisposable? ValueChangedHandler { get; set; }
+
+        /// <summary>
+        /// 获取或设置回退轮询的取消令牌源，用于控制轮询任务的生命周期。
+        /// </summary>
+        private CancellationTokenSource? PollCts { get; set; }
+
+        /// <summary>
+        /// 获取同步锁对象，用于线程安全的操作。
+        /// </summary>
+        private readonly object Sync = new();
+
+        /// <summary>
+        /// 轮询间隔（只有事件不生效时才会使用），单位为毫秒。
+        /// </summary>
+        private const int FallbackPollIntervalMs = 180;
+
+        /// <summary>
+        /// 初始化 UIAutomationMonitor 实例，创建自动化对象并注册焦点变化事件。
         /// </summary>
         public UIAutomationMonitor()
         {
             Automation = new UIA3Automation();
-            Timer = new System.Timers.Timer(NormalInterval);
-            Timer.Elapsed += OnTimerElapsed;
-            Timer.Start();
+            RegisterFocusChanged();
+            TryAttachToFocusedEdit(Automation.FocusedElement());
         }
 
         /// <summary>
-        /// 获取聊天历史
+        /// 注册焦点变化事件处理器。
         /// </summary>
-        /// <param name="wechatWindow">微信窗口元素</param>
-        /// <returns>聊天历史列表，元组为 (发送者, 消息内容)</returns>
+        private void RegisterFocusChanged()
+        {
+            FocusChangedHandler = Automation.RegisterFocusChangedEvent(element =>
+            {
+                if (element != null)
+                {
+                    OnFocusChanged(element);
+                }
+            });
+        }
+
+        /// <summary>
+        /// 处理焦点变化事件，尝试附加到聚焦的编辑元素。
+        /// </summary>
+        /// <param name="element">聚焦的自动化元素。</param>
+        private void OnFocusChanged(AutomationElement element)
+        {
+            TryAttachToFocusedEdit(element);
+        }
+
+        /// <summary>
+        /// 尝试附加到聚焦的编辑元素，如果它是微信窗口内的编辑控件。
+        /// </summary>
+        /// <param name="focused">聚焦的自动化元素。</param>
+        private void TryAttachToFocusedEdit(AutomationElement? focused)
+        {
+            if (focused == null) return;
+            try
+            {
+                if (focused.ControlType != ControlType.Edit) return;
+                var wechatWindow = GetWeChatWindowFromElement(focused);
+                if (wechatWindow == null) return;
+
+                if (!Equals(EditElement, focused))
+                {
+                    EditElement = focused;
+                    LastValue = GetElementTextSafe(EditElement);
+                    RegisterTextChangeHandlers(EditElement);
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// 从给定的元素向上查找微信窗口。
+        /// </summary>
+        /// <param name="element">起始自动化元素。</param>
+        /// <returns>微信窗口元素，如果未找到则返回 null。</returns>
+        private AutomationElement? GetWeChatWindowFromElement(AutomationElement element)
+        {
+            try
+            {
+                var current = element;
+                while (current != null)
+                {
+                    if (current.ControlType == ControlType.Window && (current.Properties.Name.Value ?? string.Empty) == "微信")
+                    {
+                        return current;
+                    }
+                    current = current.Parent;
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>
+        /// 安全地获取元素的文本值，支持多种模式。
+        /// </summary>
+        /// <param name="element">要获取文本的自动化元素。</param>
+        /// <returns>元素的文本值，如果失败则返回空字符串。</returns>
+        private string GetElementTextSafe(AutomationElement element)
+        {
+            try
+            {
+                if (element.Patterns.Value.IsSupported)
+                {
+                    return element.Patterns.Value.Pattern.Value ?? string.Empty;
+                }
+                if (element.Patterns.Text.IsSupported)
+                {
+                    return element.Patterns.Text.Pattern.DocumentRange.GetText(int.MaxValue) ?? string.Empty;
+                }
+                return element.AsTextBox().Text;
+            }
+            catch { return string.Empty; }
+        }
+
+        /// <summary>
+        /// 仅注册属性变化事件 + 启动回退轮询
+        /// </summary>
+        private void RegisterTextChangeHandlers(AutomationElement edit)
+        {
+            lock (Sync)
+            {
+                ValueChangedHandler?.Dispose();
+                ValueChangedHandler = null;
+                PollCts?.Cancel();
+                PollCts = null;
+
+                // 1. 属性事件 (Value/Name)
+                try
+                {
+                    var props = new[]
+                    {
+                        edit.Automation.PropertyLibrary.Value.Value,
+                        edit.Automation.PropertyLibrary.Element.Name
+                    };
+                    ValueChangedHandler = edit.RegisterPropertyChangedEvent(TreeScope.Element, (sender, property, newValue) =>
+                    {
+                        OnAnyTextMaybeChanged();
+                    }, props);
+                }
+                catch { }
+
+                // 2. 启动回退轮询：某些自绘输入框不触发上面事件
+                PollCts = new CancellationTokenSource();
+                _ = StartFallbackPollingAsync(edit, PollCts.Token);
+            }
+        }
+
+        /// <summary>
+        /// 异步启动回退轮询任务，用于定期检查文本变化。
+        /// </summary>
+        /// <param name="edit">要轮询的编辑元素。</param>
+        /// <param name="token">取消令牌，用于停止轮询。</param>
+        private async Task StartFallbackPollingAsync(AutomationElement edit, CancellationToken token)
+        {
+            // 小延迟，避免刚聚焦时频繁读取
+            try { await Task.Delay(150, token); } catch { return; }
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    if (!Equals(EditElement, edit)) break; // 焦点已变
+                    OnAnyTextMaybeChanged();
+                }
+                catch { }
+                try { await Task.Delay(FallbackPollIntervalMs, token); } catch { break; }
+            }
+        }
+
+        /// <summary>
+        /// 处理可能的文本变化，更新最后值并评估弹出逻辑。
+        /// </summary>
+        private void OnAnyTextMaybeChanged()
+        {
+            try
+            {
+                if (EditElement == null) return;
+                var value = GetElementTextSafe(EditElement);
+                if (value == LastValue) return;
+                LastInputTime = DateTime.Now;
+                LastValue = value;
+                EvaluatePopupLogic(value);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// 根据文本值评估是否显示或隐藏弹出窗口。
+        /// </summary>
+        /// <param name="value">当前文本值。</param>
+        private void EvaluatePopupLogic(string value)
+        {
+            if (EditElement == null) return;
+            var wechatWindow = GetWeChatWindowFromElement(EditElement);
+            if (wechatWindow == null) return;
+
+            if (value.EndsWith(">>") && !PopupVisible)
+            {
+                var history = GetChatHistory(wechatWindow);
+                ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history);
+                PopupVisible = true;
+            }
+            else if (!value.EndsWith(">>") && PopupVisible)
+            {
+                HidePopup?.Invoke();
+                PopupVisible = false;
+            }
+        }
+
+        /// <summary>
+        /// 获取微信窗口的聊天历史记录。
+        /// </summary>
+        /// <param name="wechatWindow">微信窗口元素。</param>
+        /// <returns>聊天历史列表，每个元素包含发送者和消息。</returns>
         private List<(string, string)> GetChatHistory(AutomationElement wechatWindow)
         {
             var messageList = wechatWindow.FindFirstDescendant(cf => cf.ByName("消息").And(cf.ByControlType(ControlType.List)));
@@ -94,11 +289,9 @@ namespace HelpMeChat
             var history = new List<(string, string)>();
             foreach (var item in listItems)
             {
-                var name = item.Properties.Name.Value ?? "";
+                var name = item.Properties.Name.Value ?? string.Empty;
                 if (string.IsNullOrEmpty(name)) continue;
-                // 过滤日期
-                if (Regex.IsMatch(name, @"\d{4}年\d{1,2}月\d{1,2}日 \d{1,2}:\d{2}")) continue;
-                // 根据子元素中的按钮名称决定发送者
+                if (System.Text.RegularExpressions.Regex.IsMatch(name, @"\d{4}年\d{1,2}月\d{1,2}日 \d{1,2}:\d{2}")) continue;
                 var button = item.FindFirstDescendant(cf => cf.ByControlType(ControlType.Button));
                 string sender = "未知";
                 if (button != null)
@@ -111,83 +304,35 @@ namespace HelpMeChat
         }
 
         /// <summary>
-        /// 定时器事件
+        /// 当选择回复时，将回复文本插入到编辑元素中。
         /// </summary>
-        /// <param name="sender">发送者</param>
-        /// <param name="e">事件参数</param>
-        private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                var wechatWindow = Automation.GetDesktop().FindFirstDescendant(cf => cf.ByName("微信").And(cf.ByControlType(ControlType.Window)));
-                if (wechatWindow == null) return;
-                var editElements = wechatWindow.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit));
-                EditElement = editElements.FirstOrDefault(el => el.Properties.HasKeyboardFocus.Value) ?? EditElement;
-                if (EditElement == null) return;
-
-                var value = EditElement.AsTextBox().Text;
-                bool inputChanged = !value.Equals(LastValue);
-                LastValue = value;
-
-                // 检测输入变化，动态调整轮询间隔
-                if (inputChanged)
-                {
-                    LastInputTime = DateTime.Now;
-                    // 输入时，拉长轮询间隔，减少卡顿
-                    Timer.Interval = NormalInterval;
-                }
-
-                // 检测弹窗触发条件
-                if (value.EndsWith(">>") && inputChanged)
-                {
-                    var history = GetChatHistory(wechatWindow);
-                    ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history);
-                    PopupVisible = true;
-                    // 弹窗后，短暂加快轮询，提升响应
-                    Timer.Interval = FastInterval;
-                }
-                else if (!value.EndsWith(">>") && PopupVisible)
-                {
-                    HidePopup?.Invoke();
-                    PopupVisible = false;
-                    Timer.Interval = NormalInterval;
-                }
-
-                // 如果弹窗已显示，且 1 秒内无输入变化，恢复正常轮询
-                if (PopupVisible && (DateTime.Now - LastInputTime).TotalMilliseconds > 1000)
-                {
-                    Timer.Interval = NormalInterval;
-                }
-            }
-            catch
-            {
-                // Ignore errors
-            }
-        }
-
-        /// <summary>
-        /// 回复选择事件
-        /// </summary>
-        /// <param name="reply">选择的回复</param>
+        /// <param name="reply">要插入的回复文本。</param>
         public void OnReplySelected(string reply)
         {
             if (EditElement != null)
             {
-                var currentValue = EditElement.AsTextBox().Text;
+                var currentValue = GetElementTextSafe(EditElement);
                 if (currentValue.EndsWith(">>"))
                 {
-                    // 点击输入框
                     EditElement.Click();
-                    // 设置剪贴板
                     Clipboard.SetText(reply);
-                    // 删除 >>
-                    Keyboard.Type(VirtualKeyShort.END);
-                    Keyboard.Type(VirtualKeyShort.BACK);
-                    Keyboard.Type(VirtualKeyShort.BACK);
-                    // 模拟 Ctrl+V 粘贴
-                    Keyboard.TypeSimultaneously(new[] { VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V });
+                    FlaUI.Core.Input.Keyboard.Type(VirtualKeyShort.END);
+                    FlaUI.Core.Input.Keyboard.Type(VirtualKeyShort.BACK);
+                    FlaUI.Core.Input.Keyboard.Type(VirtualKeyShort.BACK);
+                    FlaUI.Core.Input.Keyboard.TypeSimultaneously(new[] { VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V });
                 }
             }
+        }
+
+        /// <summary>
+        /// 释放资源，包括事件处理器和自动化对象。
+        /// </summary>
+        public void Dispose()
+        {
+            ValueChangedHandler?.Dispose();
+            FocusChangedHandler?.Dispose();
+            PollCts?.Cancel();
+            Automation.Dispose();
         }
     }
 }
