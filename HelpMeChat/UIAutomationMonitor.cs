@@ -291,7 +291,7 @@ namespace HelpMeChat
             {
                 var name = item.Properties.Name.Value ?? string.Empty;
                 if (string.IsNullOrEmpty(name)) continue;
-                if (System.Text.RegularExpressions.Regex.IsMatch(name, @"\d{4}年\d{1,2}月\d{1,2}日 \d{1,2}:\d{2}")) continue;
+                if (Regex.IsMatch(name, @"\d{4}年\d{1,2}月\d{1,2}日 \d{1,2}:\d{2}")) continue;
                 var button = item.FindFirstDescendant(cf => cf.ByControlType(ControlType.Button));
                 if (button == null) continue;
 
@@ -314,10 +314,10 @@ namespace HelpMeChat
                 {
                     EditElement.Click();
                     Clipboard.SetText(reply);
-                    FlaUI.Core.Input.Keyboard.Type(VirtualKeyShort.END);
-                    FlaUI.Core.Input.Keyboard.Type(VirtualKeyShort.BACK);
-                    FlaUI.Core.Input.Keyboard.Type(VirtualKeyShort.BACK);
-                    FlaUI.Core.Input.Keyboard.TypeSimultaneously(new[] { VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V });
+                    Keyboard.Type(VirtualKeyShort.END);
+                    Keyboard.Type(VirtualKeyShort.BACK);
+                    Keyboard.Type(VirtualKeyShort.BACK);
+                    Keyboard.TypeSimultaneously(new[] { VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V });
                 }
             }
         }

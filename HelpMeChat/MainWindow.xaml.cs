@@ -137,7 +137,7 @@ namespace HelpMeChat
             }
             else if (PresetRepliesPrivate.Any(p => p.Key == key))
             {
-                System.Windows.MessageBox.Show("显示名称已存在，请使用修改功能。");
+                MessageBox.Show("显示名称已存在，请使用修改功能。");
             }
         }
 
@@ -154,7 +154,7 @@ namespace HelpMeChat
                 {
                     if (newKey != selectedPair.Key && PresetRepliesPrivate.Any(p => p.Key == newKey))
                     {
-                        System.Windows.MessageBox.Show("新显示名称已存在。");
+                        MessageBox.Show("新显示名称已存在。");
                         return;
                     }
                     PresetRepliesPrivate.Remove(selectedPair);
@@ -165,7 +165,7 @@ namespace HelpMeChat
             }
             else
             {
-                System.Windows.MessageBox.Show("请先选择要修改的项。");
+                MessageBox.Show("请先选择要修改的项。");
             }
         }
 
@@ -217,7 +217,7 @@ namespace HelpMeChat
                     PopupWindow.ReplySelected += OnReplySelectedInternal;
 
                     // 获取当前显示器 DPI 信息
-                    var source = PresentationSource.FromVisual(System.Windows.Application.Current.MainWindow);
+                    var source = PresentationSource.FromVisual(Application.Current.MainWindow);
                     double dpiX = 1.0, dpiY = 1.0;
                     if (source?.CompositionTarget != null)
                     {
