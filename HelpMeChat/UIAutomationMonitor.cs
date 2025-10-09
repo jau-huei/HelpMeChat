@@ -21,22 +21,42 @@ namespace HelpMeChat
         /// <summary>
         /// 自动化实例
         /// </summary>
-        private readonly UIA3Automation automation;
+        public UIA3Automation Automation { get; }
 
         /// <summary>
         /// 定时器
         /// </summary>
-        private readonly System.Timers.Timer timer;
+        public System.Timers.Timer Timer { get; }
+
+        /// <summary>
+        /// 最后输入时间
+        /// </summary>
+        public DateTime LastInputTime { get; set; } = DateTime.MinValue;
+
+        /// <summary>
+        /// 弹窗是否可见
+        /// </summary>
+        public bool PopupVisible { get; set; } = false;
+
+        /// <summary>
+        /// 正常轮询间隔
+        /// </summary>
+        public int NormalInterval { get; set; } = 1000;
+
+        /// <summary>
+        /// 快速检测间隔
+        /// </summary>
+        public int FastInterval { get; set; } = 300;
 
         /// <summary>
         /// 编辑元素
         /// </summary>
-        private AutomationElement? editElement;
+        public AutomationElement? EditElement { get; set; }
 
         /// <summary>
         /// 最后的值
         /// </summary>
-        private string lastValue = "";
+        public string LastValue { get; set; } = "";
 
         /// <summary>
         /// 显示弹出窗口事件
@@ -53,10 +73,10 @@ namespace HelpMeChat
         /// </summary>
         public UIAutomationMonitor()
         {
-            automation = new UIA3Automation();
-            timer = new System.Timers.Timer(1500);
-            timer.Elapsed += OnTimerElapsed;
-            timer.Start();
+            Automation = new UIA3Automation();
+            Timer = new System.Timers.Timer(NormalInterval);
+            Timer.Elapsed += OnTimerElapsed;
+            Timer.Start();
         }
 
         /// <summary>
@@ -99,24 +119,45 @@ namespace HelpMeChat
         {
             try
             {
-                var wechatWindow = automation.GetDesktop().FindFirstDescendant(cf => cf.ByName("微信").And(cf.ByControlType(ControlType.Window)));
+                var wechatWindow = Automation.GetDesktop().FindFirstDescendant(cf => cf.ByName("微信").And(cf.ByControlType(ControlType.Window)));
                 if (wechatWindow == null) return;
                 var editElements = wechatWindow.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit));
-                editElement = editElements.FirstOrDefault(el => el.Properties.HasKeyboardFocus.Value) ?? editElement;
-                if (editElement == null) return;
+                EditElement = editElements.FirstOrDefault(el => el.Properties.HasKeyboardFocus.Value) ?? EditElement;
+                if (EditElement == null) return;
 
-                var value = editElement.AsTextBox().Text;
-                if (value.EndsWith(">>") && !value.Equals(lastValue))
+                var value = EditElement.AsTextBox().Text;
+                bool inputChanged = !value.Equals(LastValue);
+                LastValue = value;
+
+                // 检测输入变化，动态调整轮询间隔
+                if (inputChanged)
                 {
-                    // 捕捉历史对话信息
-                    var history = GetChatHistory(wechatWindow);
-                    ShowPopup?.Invoke(editElement.BoundingRectangle.Left, editElement.BoundingRectangle.Top, history);
+                    LastInputTime = DateTime.Now;
+                    // 输入时，拉长轮询间隔，减少卡顿
+                    Timer.Interval = NormalInterval;
                 }
-                else if (!value.EndsWith(">>"))
+
+                // 检测弹窗触发条件
+                if (value.EndsWith(">>") && inputChanged)
+                {
+                    var history = GetChatHistory(wechatWindow);
+                    ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history);
+                    PopupVisible = true;
+                    // 弹窗后，短暂加快轮询，提升响应
+                    Timer.Interval = FastInterval;
+                }
+                else if (!value.EndsWith(">>") && PopupVisible)
                 {
                     HidePopup?.Invoke();
+                    PopupVisible = false;
+                    Timer.Interval = NormalInterval;
                 }
-                lastValue = value;
+
+                // 如果弹窗已显示，且 1 秒内无输入变化，恢复正常轮询
+                if (PopupVisible && (DateTime.Now - LastInputTime).TotalMilliseconds > 1000)
+                {
+                    Timer.Interval = NormalInterval;
+                }
             }
             catch
             {
@@ -130,13 +171,13 @@ namespace HelpMeChat
         /// <param name="reply">选择的回复</param>
         public void OnReplySelected(string reply)
         {
-            if (editElement != null)
+            if (EditElement != null)
             {
-                var currentValue = editElement.AsTextBox().Text;
+                var currentValue = EditElement.AsTextBox().Text;
                 if (currentValue.EndsWith(">>"))
                 {
                     // 点击输入框
-                    editElement.Click();
+                    EditElement.Click();
                     // 设置剪贴板
                     Clipboard.SetText(reply);
                     // 删除 >>
