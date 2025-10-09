@@ -188,6 +188,7 @@ namespace HelpMeChat
         private void SaveConfig_Click(object sender, RoutedEventArgs e)
         {
             SaveConfig();
+            LoadConfig();
             StatusTextBlock.Text = "配置已保存！";
         }
 
