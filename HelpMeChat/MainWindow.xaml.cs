@@ -25,7 +25,7 @@ namespace HelpMeChat
         /// <summary>
         /// 弹出窗口
         /// </summary>
-        private PoemSelectorWindow? popupWindow;
+        private ReplySelectorWindow? popupWindow;
 
         /// <summary>
         /// 构造函数
@@ -36,7 +36,6 @@ namespace HelpMeChat
             monitor = new UIAutomationMonitor();
             monitor.ShowPopup += OnShowPopup;
             monitor.HidePopup += OnHidePopup;
-            monitor.PoemSelected += OnPoemSelected;
         }
 
         /// <summary>
@@ -51,8 +50,8 @@ namespace HelpMeChat
             {
                 if (popupWindow == null || !popupWindow.IsVisible)
                 {
-                    popupWindow = new PoemSelectorWindow();
-                    popupWindow.PoemSelected += OnPoemSelectedInternal;
+                    popupWindow = new ReplySelectorWindow();
+                    popupWindow.ReplySelected += OnReplySelectedInternal;
                     popupWindow.Left = left;
                     popupWindow.Top = top;
                     popupWindow.Show();
@@ -76,21 +75,21 @@ namespace HelpMeChat
         }
 
         /// <summary>
-        /// 诗句选择事件
+        /// 回复选择事件
         /// </summary>
-        /// <param name="poem">选择的诗句</param>
-        private void OnPoemSelected(string poem)
+        /// <param name="reply">选择的回复</param>
+        private void OnReplySelected(string reply)
         {
-            // 处理诗句选择后的逻辑，如果需要
+            // 处理回复选择后的逻辑，如果需要
         }
 
         /// <summary>
-        /// 内部诗句选择事件
+        /// 内部回复选择事件
         /// </summary>
-        /// <param name="poem">选择的诗句</param>
-        private void OnPoemSelectedInternal(string poem)
+        /// <param name="reply">选择的回复</param>
+        private void OnReplySelectedInternal(string reply)
         {
-            monitor.SelectPoem(poem);
+            monitor.OnReplySelected(reply);
             OnHidePopup();
         }
     }

@@ -4,53 +4,53 @@ using System.Windows;
 namespace HelpMeChat
 {
     /// <summary>
-    /// 诗句选择窗口类
+    /// 回复选择窗口类
     /// </summary>
-    public partial class PoemSelectorWindow : Window
+    public partial class ReplySelectorWindow : Window
     {
         /// <summary>
-        /// 诗句选择事件
+        /// 回复选择事件
         /// </summary>
-        public event Action<string>? PoemSelected;
+        public event Action<string>? ReplySelected;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public PoemSelectorWindow()
+        public ReplySelectorWindow()
         {
             InitializeComponent();
         }
 
         /// <summary>
-        /// 诗1按钮点击事件
+        /// 回复1按钮点击事件
         /// </summary>
         /// <param name="sender">发送者</param>
         /// <param name="e">事件参数</param>
-        private void Poem1_Click(object sender, RoutedEventArgs e)
+        private void Reply1_Click(object sender, RoutedEventArgs e)
         {
-            PoemSelected?.Invoke("床前明月光，疑是地上霜。举头望明月，低头思故乡。");
+            ReplySelected?.Invoke("好的，谢谢！");
             Close();
         }
 
         /// <summary>
-        /// 诗2按钮点击事件
+        /// 回复2按钮点击事件
         /// </summary>
         /// <param name="sender">发送者</param>
         /// <param name="e">事件参数</param>
-        private void Poem2_Click(object sender, RoutedEventArgs e)
+        private void Reply2_Click(object sender, RoutedEventArgs e)
         {
-            PoemSelected?.Invoke("春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。");
+            ReplySelected?.Invoke("请稍等一下。");
             Close();
         }
 
         /// <summary>
-        /// 诗3按钮点击事件
+        /// 回复3按钮点击事件
         /// </summary>
         /// <param name="sender">发送者</param>
         /// <param name="e">事件参数</param>
-        private void Poem3_Click(object sender, RoutedEventArgs e)
+        private void Reply3_Click(object sender, RoutedEventArgs e)
         {
-            PoemSelected?.Invoke("白日依山尽，黄河入海流。欲穷千里目，更上一层楼。");
+            ReplySelected?.Invoke("明白了。");
             Close();
         }
     }

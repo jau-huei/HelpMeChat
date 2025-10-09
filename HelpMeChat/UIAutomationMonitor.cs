@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using FlaUI.Core.WindowsAPI;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HelpMeChat
 {
@@ -48,11 +49,6 @@ namespace HelpMeChat
         public event Action? HidePopup;
 
         /// <summary>
-        /// 诗句选择事件
-        /// </summary>
-        public event Action<string>? PoemSelected;
-
-        /// <summary>
         /// 构造函数
         /// </summary>
         public UIAutomationMonitor()
@@ -61,15 +57,6 @@ namespace HelpMeChat
             timer = new System.Timers.Timer(1500);
             timer.Elapsed += OnTimerElapsed;
             timer.Start();
-        }
-
-        /// <summary>
-        /// 选择诗句
-        /// </summary>
-        /// <param name="poem">诗句</param>
-        public void SelectPoem(string poem)
-        {
-            OnPoemSelected(poem);
         }
 
         /// <summary>
@@ -138,10 +125,10 @@ namespace HelpMeChat
         }
 
         /// <summary>
-        /// 诗句选择事件
+        /// 回复选择事件
         /// </summary>
-        /// <param name="poem">选择的诗句</param>
-        private void OnPoemSelected(string poem)
+        /// <param name="reply">选择的回复</param>
+        public void OnReplySelected(string reply)
         {
             if (editElement != null)
             {
@@ -151,15 +138,15 @@ namespace HelpMeChat
                     // 点击输入框
                     editElement.Click();
                     // 设置剪贴板
-                    Clipboard.SetText(poem);
+                    Clipboard.SetText(reply);
                     // 删除 >>
+                    Keyboard.Type(VirtualKeyShort.END);
                     Keyboard.Type(VirtualKeyShort.BACK);
                     Keyboard.Type(VirtualKeyShort.BACK);
                     // 模拟 Ctrl+V 粘贴
                     Keyboard.TypeSimultaneously(new[] { VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V });
                 }
             }
-            PoemSelected?.Invoke(poem);
         }
     }
 }
