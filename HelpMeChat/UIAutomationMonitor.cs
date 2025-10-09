@@ -102,7 +102,7 @@ namespace HelpMeChat
                 var wechatWindow = automation.GetDesktop().FindFirstDescendant(cf => cf.ByName("微信").And(cf.ByControlType(ControlType.Window)));
                 if (wechatWindow == null) return;
                 var editElements = wechatWindow.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit));
-                editElement = editElements.FirstOrDefault(el => el.Properties.HasKeyboardFocus.Value);
+                editElement = editElements.FirstOrDefault(el => el.Properties.HasKeyboardFocus.Value) ?? editElement;
                 if (editElement == null) return;
 
                 var value = editElement.AsTextBox().Text;

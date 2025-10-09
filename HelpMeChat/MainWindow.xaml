@@ -5,8 +5,159 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HelpMeChat"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="HelpMeChat" Height="600" Width="800"
+        Background="#F8FAFC">
+    <Window.Resources>
+        <!-- 主题配色 -->
+        <SolidColorBrush x:Key="AccentBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="HeaderBg" Color="#0F172A"/>
+        <SolidColorBrush x:Key="HeaderFg" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="CardBg" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BorderBrushColor" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#111827"/>
 
+        <!-- 扁平按钮样式 -->
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="MinWidth" Value="96"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.92"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 输入样式 -->
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Margin" Value="6,6,0,4"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+        </Style>
+
+        <!-- 卡片容器样式 -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部标题 -->
+        <Grid Background="{StaticResource HeaderBg}" Grid.Row="0">
+            <StackPanel Orientation="Vertical" Margin="16,0" VerticalAlignment="Center">
+                <TextBlock Text="HelpMeChat" Foreground="{StaticResource HeaderFg}" FontSize="20" FontWeight="Bold"/>
+                <TextBlock Text="微信快速回复助手" Foreground="#A7F3D0" FontSize="12"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 主体设置区域 -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10" Height="45">
+                    <TextBlock x:Name="StatusTextBlock" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}"/>
+                    <Button Content="保存配置" Click="SaveConfig_Click"/>
+                    <Button Content="加载配置" Click="LoadConfig_Click"/>
+                </StackPanel>
+
+                <TabControl Grid.Row="1">
+                    <TabItem>
+                        <TabItem.Header>
+                            <TextBlock Text="预设回复设置" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
+                        </TabItem.Header>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <ListBox x:Name="PresetRepliesListBox" Grid.Row="0" ItemsSource="{Binding PresetReplies}" SelectionMode="Single" SelectionChanged="PresetRepliesListBox_SelectionChanged" AlternationCount="2">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Style.Triggers>
+                                            <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                                <Setter Property="Background" Value="#D1FAE5"/>
+                                            </Trigger>
+                                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                                <Setter Property="Background" Value="#F3F4F6"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Key}" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding Value}" FontStyle="Italic" TextWrapping="Wrap" MaxWidth="300"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <Border Grid.Row="1" Background="#F3F4F6" Padding="10" Margin="0,10,0,0">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBox x:Name="KeyTextBox" Margin="6" Text="输入显示名称"/>
+                                    <TextBox x:Name="ValueTextBox" Margin="6" Height="60" Text="输入回复内容" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="添加" Click="AddReply_Click"/>
+                                        <Button Content="修改" Click="ModifyReply_Click"/>
+                                        <Button Content="删除选中" Click="RemoveReply_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace HelpMeChat
 {
@@ -16,42 +18,55 @@ namespace HelpMeChat
         /// <summary>
         /// 构造函数
         /// </summary>
-        public ReplySelectorWindow()
+        /// <param name="presetReplies">预设回复字典</param>
+        public ReplySelectorWindow(Dictionary<string, string> presetReplies)
         {
             InitializeComponent();
+            this.presetReplies = presetReplies;
+            ReplyComboBox.ItemsSource = presetReplies.Keys;
+            if (presetReplies.Count > 0)
+            {
+                ReplyComboBox.SelectedIndex = 0;
+                // 初始化显示Value
+                if (ReplyComboBox.SelectedItem is string selectedKey && presetReplies.TryGetValue(selectedKey, out string? value))
+                {
+                    ValueTextBlock.Text = value;
+                }
+            }
         }
 
         /// <summary>
-        /// 回复1按钮点击事件
+        /// 预设回复字典
         /// </summary>
-        /// <param name="sender">发送者</param>
-        /// <param name="e">事件参数</param>
-        private void Reply1_Click(object sender, RoutedEventArgs e)
+        private Dictionary<string, string> presetReplies;
+
+        /// <summary>
+        /// ComboBox选择改变事件
+        /// </summary>
+        private void ReplyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ReplySelected?.Invoke("好的，谢谢！");
-            Close();
+            if (ReplyComboBox.SelectedItem is string selectedKey && presetReplies.TryGetValue(selectedKey, out string? value))
+            {
+                ValueTextBlock.Text = value;
+            }
+            else
+            {
+                ValueTextBlock.Text = "";
+            }
         }
 
         /// <summary>
-        /// 回复2按钮点击事件
+        /// 确定按钮点击事件
         /// </summary>
         /// <param name="sender">发送者</param>
         /// <param name="e">事件参数</param>
-        private void Reply2_Click(object sender, RoutedEventArgs e)
+        private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            ReplySelected?.Invoke("请稍等一下。");
-            Close();
-        }
-
-        /// <summary>
-        /// 回复3按钮点击事件
-        /// </summary>
-        /// <param name="sender">发送者</param>
-        /// <param name="e">事件参数</param>
-        private void Reply3_Click(object sender, RoutedEventArgs e)
-        {
-            ReplySelected?.Invoke("明白了。");
-            Close();
+            if (ReplyComboBox.SelectedItem is string selectedKey && presetReplies.TryGetValue(selectedKey, out string? value))
+            {
+                ReplySelected?.Invoke(value);
+                Close();
+            }
         }
     }
 }
