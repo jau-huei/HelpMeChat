@@ -7,6 +7,8 @@ using FlaUI.Core.Input;
 using FlaUI.Core.Definitions;
 using System.Windows.Forms;
 using FlaUI.Core.WindowsAPI;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace HelpMeChat
 {
@@ -38,7 +40,7 @@ namespace HelpMeChat
         /// <summary>
         /// 显示弹出窗口事件
         /// </summary>
-        public event Action<double, double>? ShowPopup;
+        public event Action<double, double, List<(string, string)>>? ShowPopup;
 
         /// <summary>
         /// 隐藏弹出窗口事件
@@ -71,6 +73,37 @@ namespace HelpMeChat
         }
 
         /// <summary>
+        /// 获取聊天历史
+        /// </summary>
+        /// <param name="wechatWindow">微信窗口元素</param>
+        /// <returns>聊天历史列表，元组为 (发送者, 消息内容)</returns>
+        private List<(string, string)> GetChatHistory(AutomationElement wechatWindow)
+        {
+            var messageList = wechatWindow.FindFirstDescendant(cf => cf.ByName("消息").And(cf.ByControlType(ControlType.List)));
+            if (messageList == null) return new List<(string, string)>();
+            var listItems = messageList.FindAllDescendants(cf => cf.ByControlType(ControlType.ListItem))
+                .OrderBy(item => item.BoundingRectangle.Top)
+                .ToList();
+            var history = new List<(string, string)>();
+            foreach (var item in listItems)
+            {
+                var name = item.Properties.Name.Value ?? "";
+                if (string.IsNullOrEmpty(name)) continue;
+                // 过滤日期
+                if (Regex.IsMatch(name, @"\d{4}年\d{1,2}月\d{1,2}日 \d{1,2}:\d{2}")) continue;
+                // 根据子元素中的按钮名称决定发送者
+                var button = item.FindFirstDescendant(cf => cf.ByControlType(ControlType.Button));
+                string sender = "未知";
+                if (button != null)
+                {
+                    sender = button.Properties.Name.Value ?? "未知";
+                }
+                history.Add((sender, name));
+            }
+            return history;
+        }
+
+        /// <summary>
         /// 定时器事件
         /// </summary>
         /// <param name="sender">发送者</param>
@@ -79,15 +112,18 @@ namespace HelpMeChat
         {
             try
             {
-                var wechatWindow = automation.GetDesktop().FindFirstDescendant(cf => cf.ByName("微信").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Window)));
+                var wechatWindow = automation.GetDesktop().FindFirstDescendant(cf => cf.ByName("微信").And(cf.ByControlType(ControlType.Window)));
                 if (wechatWindow == null) return;
-                var editElements = wechatWindow.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit));
+                var editElements = wechatWindow.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit));
                 editElement = editElements.FirstOrDefault(el => el.Properties.HasKeyboardFocus.Value);
                 if (editElement == null) return;
+
                 var value = editElement.AsTextBox().Text;
                 if (value.EndsWith(">>") && !value.Equals(lastValue))
                 {
-                    ShowPopup?.Invoke(editElement.BoundingRectangle.Left, editElement.BoundingRectangle.Top - 200);
+                    // 捕捉历史对话信息
+                    var history = GetChatHistory(wechatWindow);
+                    ShowPopup?.Invoke(editElement.BoundingRectangle.Left, editElement.BoundingRectangle.Top - 200, history);
                 }
                 else if (!value.EndsWith(">>"))
                 {

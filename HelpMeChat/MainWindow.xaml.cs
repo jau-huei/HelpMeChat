@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Collections.Generic;
 
 namespace HelpMeChat
 {
@@ -43,7 +44,8 @@ namespace HelpMeChat
         /// </summary>
         /// <param name="left">左位置</param>
         /// <param name="top">上位置</param>
-        private void OnShowPopup(double left, double top)
+        /// <param name="history">聊天历史</param>
+        private void OnShowPopup(double left, double top, List<(string, string)> history)
         {
             Dispatcher.Invoke(() =>
             {

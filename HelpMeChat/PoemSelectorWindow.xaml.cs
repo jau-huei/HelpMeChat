@@ -11,7 +11,7 @@ namespace HelpMeChat
         /// <summary>
         /// 诗句选择事件
         /// </summary>
-        public event Action<string> PoemSelected;
+        public event Action<string>? PoemSelected;
 
         /// <summary>
         /// 构造函数
