@@ -198,8 +198,20 @@ namespace HelpMeChat
                 {
                     popupWindow = new ReplySelectorWindow(config.PresetReplies);
                     popupWindow.ReplySelected += OnReplySelectedInternal;
-                    popupWindow.Left = left;
-                    popupWindow.Top = top;
+
+                    // 获取当前显示器 DPI 信息
+                    var source = PresentationSource.FromVisual(Application.Current.MainWindow);
+                    double dpiX = 1.0, dpiY = 1.0;
+                    if (source?.CompositionTarget != null)
+                    {
+                        dpiX = source.CompositionTarget.TransformFromDevice.M11;
+                        dpiY = source.CompositionTarget.TransformFromDevice.M22;
+                    }
+
+                    // 将像素坐标转换为 WPF 坐标
+                    popupWindow.Left = left * dpiX;
+                    popupWindow.Top = top * dpiY - popupWindow.Height;
+
                     popupWindow.Show();
                 }
             });

@@ -110,7 +110,7 @@ namespace HelpMeChat
                 {
                     // 捕捉历史对话信息
                     var history = GetChatHistory(wechatWindow);
-                    ShowPopup?.Invoke(editElement.BoundingRectangle.Left, editElement.BoundingRectangle.Top - 200, history);
+                    ShowPopup?.Invoke(editElement.BoundingRectangle.Left, editElement.BoundingRectangle.Top, history);
                 }
                 else if (!value.EndsWith(">>"))
                 {
