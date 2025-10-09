@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace HelpMeChat
 {
@@ -67,6 +68,22 @@ namespace HelpMeChat
                 ReplySelected?.Invoke(value);
                 Close();
             }
+        }
+
+        /// <summary>
+        /// 窗口鼠标左键按下事件，用于拖动窗口
+        /// </summary>
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        /// <summary>
+        /// 关闭按钮点击事件
+        /// </summary>
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
