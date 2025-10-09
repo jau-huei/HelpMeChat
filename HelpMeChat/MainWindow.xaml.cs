@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using Forms = System.Windows.Forms;
+using Drawing = System.Drawing;
 
 namespace HelpMeChat
 {
@@ -16,27 +19,32 @@ namespace HelpMeChat
         /// <summary>
         /// UI 自动化监控实例
         /// </summary>
-        private UIAutomationMonitor monitor;
+        private UIAutomationMonitor? Monitor { get; set; }
 
         /// <summary>
         /// 弹出窗口
         /// </summary>
-        private ReplySelectorWindow? popupWindow;
+        private ReplySelectorWindow? PopupWindow { get; set; }
 
         /// <summary>
         /// 应用程序配置
         /// </summary>
-        private AppConfig config;
+        private AppConfig? Config { get; set; }
 
         /// <summary>
         /// 可观察的预设回复集合
         /// </summary>
-        private ObservableCollection<KeyValuePair<string, string>> _presetReplies = new ObservableCollection<KeyValuePair<string, string>>();
+        private ObservableCollection<KeyValuePair<string, string>> PresetRepliesPrivate { get; set; } = new ObservableCollection<KeyValuePair<string, string>>();
+
+        /// <summary>
+        /// 系统托盘图标
+        /// </summary>
+        private Forms.NotifyIcon? NotifyIcon { get; set; }
 
         /// <summary>
         /// 预设回复集合属性
         /// </summary>
-        public ObservableCollection<KeyValuePair<string, string>> PresetReplies => _presetReplies;
+        public ObservableCollection<KeyValuePair<string, string>> PresetReplies => PresetRepliesPrivate;
 
         /// <summary>
         /// 构造函数
@@ -44,15 +52,23 @@ namespace HelpMeChat
         public MainWindow()
         {
             InitializeComponent();
-            config = LoadConfig();
+            Config = LoadConfig();
             DataContext = this;
-            foreach (var pair in config.PresetReplies)
+            foreach (var pair in Config.PresetReplies)
             {
-                _presetReplies.Add(pair);
+                PresetRepliesPrivate.Add(pair);
             }
-            monitor = new UIAutomationMonitor();
-            monitor.ShowPopup += OnShowPopup;
-            monitor.HidePopup += OnHidePopup;
+            Monitor = new UIAutomationMonitor();
+            Monitor.ShowPopup += OnShowPopup;
+            Monitor.HidePopup += OnHidePopup;
+            this.StateChanged += MainWindow_StateChanged;
+            this.Closed += MainWindow_Closed;
+
+            NotifyIcon = new Forms.NotifyIcon();
+            NotifyIcon.Icon = new Drawing.Icon("Icon.ico");
+            NotifyIcon.Text = "HelpMeChat";
+            NotifyIcon.DoubleClick += NotifyIcon_DoubleClick;
+            NotifyIcon.Visible = false;
         }
 
         /// <summary>
@@ -65,18 +81,18 @@ namespace HelpMeChat
             if (File.Exists(configPath))
             {
                 string json = File.ReadAllText(configPath);
-                config = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
+                Config = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
             }
             else
             {
-                config = new AppConfig();
+                Config = new AppConfig();
             }
-            _presetReplies.Clear();
-            foreach (var pair in config.PresetReplies)
+            PresetRepliesPrivate.Clear();
+            foreach (var pair in Config.PresetReplies)
             {
-                _presetReplies.Add(pair);
+                PresetRepliesPrivate.Add(pair);
             }
-            return config;
+            return Config;
         }
 
         /// <summary>
@@ -84,13 +100,13 @@ namespace HelpMeChat
         /// </summary>
         private void SaveConfig()
         {
-            config.PresetReplies.Clear();
-            foreach (var pair in _presetReplies)
+            Config!.PresetReplies.Clear();
+            foreach (var pair in PresetRepliesPrivate)
             {
-                config.PresetReplies[pair.Key] = pair.Value;
+                Config.PresetReplies[pair.Key] = pair.Value;
             }
             string configPath = "config.json";
-            string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            string json = JsonSerializer.Serialize(Config, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(configPath, json);
         }
 
@@ -113,15 +129,15 @@ namespace HelpMeChat
         {
             string key = KeyTextBox.Text.Trim();
             string value = ValueTextBox.Text.Trim();
-            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value) && !_presetReplies.Any(p => p.Key == key))
+            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value) && !PresetRepliesPrivate.Any(p => p.Key == key))
             {
-                _presetReplies.Add(new KeyValuePair<string, string>(key, value));
+                PresetRepliesPrivate.Add(new KeyValuePair<string, string>(key, value));
                 KeyTextBox.Text = "";
                 ValueTextBox.Text = "";
             }
-            else if (_presetReplies.Any(p => p.Key == key))
+            else if (PresetRepliesPrivate.Any(p => p.Key == key))
             {
-                MessageBox.Show("显示名称已存在，请使用修改功能。");
+                System.Windows.MessageBox.Show("显示名称已存在，请使用修改功能。");
             }
         }
 
@@ -136,20 +152,20 @@ namespace HelpMeChat
                 string newValue = ValueTextBox.Text.Trim();
                 if (!string.IsNullOrEmpty(newKey) && !string.IsNullOrEmpty(newValue))
                 {
-                    if (newKey != selectedPair.Key && _presetReplies.Any(p => p.Key == newKey))
+                    if (newKey != selectedPair.Key && PresetRepliesPrivate.Any(p => p.Key == newKey))
                     {
-                        MessageBox.Show("新显示名称已存在。");
+                        System.Windows.MessageBox.Show("新显示名称已存在。");
                         return;
                     }
-                    _presetReplies.Remove(selectedPair);
-                    _presetReplies.Add(new KeyValuePair<string, string>(newKey, newValue));
+                    PresetRepliesPrivate.Remove(selectedPair);
+                    PresetRepliesPrivate.Add(new KeyValuePair<string, string>(newKey, newValue));
                     KeyTextBox.Text = "";
                     ValueTextBox.Text = "";
                 }
             }
             else
             {
-                MessageBox.Show("请先选择要修改的项。");
+                System.Windows.MessageBox.Show("请先选择要修改的项。");
             }
         }
 
@@ -160,7 +176,7 @@ namespace HelpMeChat
         {
             if (PresetRepliesListBox.SelectedItem is KeyValuePair<string, string> selectedPair)
             {
-                _presetReplies.Remove(selectedPair);
+                PresetRepliesPrivate.Remove(selectedPair);
                 KeyTextBox.Text = "";
                 ValueTextBox.Text = "";
             }
@@ -180,7 +196,7 @@ namespace HelpMeChat
         /// </summary>
         private void LoadConfig_Click(object sender, RoutedEventArgs e)
         {
-            config = LoadConfig();
+            Config = LoadConfig();
             StatusTextBlock.Text = "配置已加载！";
         }
 
@@ -194,13 +210,13 @@ namespace HelpMeChat
         {
             Dispatcher.Invoke(() =>
             {
-                if (popupWindow == null || !popupWindow.IsVisible)
+                if (PopupWindow == null || !PopupWindow.IsVisible)
                 {
-                    popupWindow = new ReplySelectorWindow(config.PresetReplies);
-                    popupWindow.ReplySelected += OnReplySelectedInternal;
+                    PopupWindow = new ReplySelectorWindow(Config!.PresetReplies);
+                    PopupWindow.ReplySelected += OnReplySelectedInternal;
 
                     // 获取当前显示器 DPI 信息
-                    var source = PresentationSource.FromVisual(Application.Current.MainWindow);
+                    var source = PresentationSource.FromVisual(System.Windows.Application.Current.MainWindow);
                     double dpiX = 1.0, dpiY = 1.0;
                     if (source?.CompositionTarget != null)
                     {
@@ -209,10 +225,10 @@ namespace HelpMeChat
                     }
 
                     // 将像素坐标转换为 WPF 坐标
-                    popupWindow.Left = left * dpiX;
-                    popupWindow.Top = top * dpiY - popupWindow.Height;
+                    PopupWindow.Left = left * dpiX;
+                    PopupWindow.Top = top * dpiY - PopupWindow.Height;
 
-                    popupWindow.Show();
+                    PopupWindow.Show();
                 }
             });
         }
@@ -224,10 +240,10 @@ namespace HelpMeChat
         {
             Dispatcher.Invoke(() =>
             {
-                if (popupWindow != null && popupWindow.IsVisible)
+                if (PopupWindow != null && PopupWindow.IsVisible)
                 {
-                    popupWindow.Close();
-                    popupWindow = null;
+                    PopupWindow.Close();
+                    PopupWindow = null;
                 }
             });
         }
@@ -247,8 +263,39 @@ namespace HelpMeChat
         /// <param name="reply">选择的回复</param>
         private void OnReplySelectedInternal(string reply)
         {
-            monitor.OnReplySelected(reply);
+            Monitor!.OnReplySelected(reply);
             OnHidePopup();
+        }
+
+        /// <summary>
+        /// 窗口状态改变事件
+        /// </summary>
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            if (this.WindowState == WindowState.Minimized)
+            {
+                this.Hide();
+                NotifyIcon!.Visible = true;
+            }
+        }
+
+        /// <summary>
+        /// 托盘图标双击事件
+        /// </summary>
+        private void NotifyIcon_DoubleClick(object? sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
+            NotifyIcon!.Visible = false;
+        }
+
+        /// <summary>
+        /// 窗口关闭事件
+        /// </summary>
+        private void MainWindow_Closed(object? sender, EventArgs e)
+        {
+            NotifyIcon!.Dispose();
         }
     }
 }
