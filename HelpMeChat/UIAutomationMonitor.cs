@@ -293,11 +293,9 @@ namespace HelpMeChat
                 if (string.IsNullOrEmpty(name)) continue;
                 if (System.Text.RegularExpressions.Regex.IsMatch(name, @"\d{4}年\d{1,2}月\d{1,2}日 \d{1,2}:\d{2}")) continue;
                 var button = item.FindFirstDescendant(cf => cf.ByControlType(ControlType.Button));
-                string sender = "未知";
-                if (button != null)
-                {
-                    sender = button.Properties.Name.Value ?? "未知";
-                }
+                if (button == null) continue;
+
+                string sender = button.Properties.Name.Value ?? "未知";
                 history.Add((sender, name));
             }
             return history;
