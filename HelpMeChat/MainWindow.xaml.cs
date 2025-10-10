@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -183,6 +184,7 @@ namespace HelpMeChat
             // 确保属性不为 null
             Config.PresetReplies ??= new Dictionary<string, string>();
             Config.AiConfigs ??= new List<AiConfig>();
+            Config.UserMemories ??= new List<UserMemory>();
             PresetRepliesPrivate.Clear();
             if (Config.PresetReplies != null)
             {
@@ -218,8 +220,14 @@ namespace HelpMeChat
             {
                 Config.AiConfigs.Add(config);
             }
+            // 确保 UserMemories 不为 null
+            Config.UserMemories ??= new List<UserMemory>();
             string configPath = "config.json";
-            string json = JsonSerializer.Serialize(Config, new JsonSerializerOptions { WriteIndented = true });
+            string json = JsonSerializer.Serialize(Config, new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
             File.WriteAllText(configPath, json);
         }
 
@@ -422,9 +430,16 @@ namespace HelpMeChat
                 if (Config?.PresetReplies == null) return;
                 if (PopupWindow == null || !PopupWindow.IsVisible)
                 {
-                    PopupWindow = new ReplySelectorWindow(Config.PresetReplies, Config.AiConfigs, currentUserName, Config.DefaultOllamaIp, Config.DefaultOllamaPort.ToString(), Config.DefaultModel, history);
+                    // 确保 currentUserName 不为空
+                    if (string.IsNullOrEmpty(currentUserName))
+                    {
+                        currentUserName = Config.DefaultWeChatUserName ?? "DefaultUser";
+                    }
+
+                    PopupWindow = new ReplySelectorWindow(Config, currentUserName, history);
                     PopupWindow.ReplySelected += OnReplySelectedInternal;
                     PopupWindow.AiReplySelected += OnAiReplySelectedInternal;
+                    PopupWindow.OnCloseSave += () => SaveConfig();
 
                     // 获取当前显示器 DPI 信息
                     var source = PresentationSource.FromVisual(Application.Current.MainWindow);
@@ -507,6 +522,7 @@ namespace HelpMeChat
         /// </summary>
         private void MainWindow_Closed(object? sender, EventArgs e)
         {
+            SaveConfig(); // 保存配置
             NotifyIcon!.Dispose();
         }
     }
