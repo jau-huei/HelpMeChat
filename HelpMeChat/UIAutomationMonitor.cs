@@ -47,7 +47,7 @@ namespace HelpMeChat
         /// <summary>
         /// 当需要显示弹出窗口时触发的事件，传递位置坐标和聊天历史列表。
         /// </summary>
-        public event Action<double, double, List<(string, string)>>? ShowPopup;
+        public event Action<double, double, List<(string, string)>, string>? ShowPopup;
 
         /// <summary>
         /// 当需要隐藏弹出窗口时触发的事件。
@@ -68,6 +68,11 @@ namespace HelpMeChat
         /// 获取或设置回退轮询的取消令牌源，用于控制轮询任务的生命周期。
         /// </summary>
         private CancellationTokenSource? PollCts { get; set; }
+
+        /// <summary>
+        /// 获取或设置应用程序配置，用于获取默认设置。
+        /// </summary>
+        public AppConfig? Config { get; set; }
 
         /// <summary>
         /// 获取同步锁对象，用于线程安全的操作。
@@ -263,8 +268,12 @@ namespace HelpMeChat
 
             if (value.EndsWith(">>") && !PopupVisible)
             {
+                var weChatUserName = Config?.DefaultWeChatUserName ?? string.Empty;
                 var history = GetChatHistory(wechatWindow);
-                ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history);
+                history.Add((weChatUserName, value));
+
+                var name = EditElement.Properties.Name.Value ?? string.Empty;
+                ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history, name);
                 PopupVisible = true;
             }
             else if (!value.EndsWith(">>") && PopupVisible)

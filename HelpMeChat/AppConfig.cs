@@ -13,6 +13,11 @@ namespace HelpMeChat
         public Dictionary<string, string>? PresetReplies { get; set; }
 
         /// <summary>
+        /// 默认微信用户名，用于告诉 AI 我是谁
+        /// </summary>
+        public string? DefaultWeChatUserName { get; set; }
+
+        /// <summary>
         /// 预设 Ollama 服务 IP 地址
         /// </summary>
         public string? DefaultOllamaIp { get; set; }

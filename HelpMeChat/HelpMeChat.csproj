@@ -19,6 +19,7 @@
     <PackageReference Include="FlaUI.Core" Version="4.0.0" />
     <PackageReference Include="FlaUI.UIA3" Version="4.0.0" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.0" />
+    <PackageReference Include="Ollama" Version="1.15.0" />
   </ItemGroup>
 
   <ItemGroup>

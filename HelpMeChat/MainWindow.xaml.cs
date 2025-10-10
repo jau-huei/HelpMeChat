@@ -120,6 +120,22 @@ namespace HelpMeChat
         }
 
         /// <summary>
+        /// 默认微信用户名
+        /// </summary>
+        public string DefaultWeChatUserName
+        {
+            get => Config?.DefaultWeChatUserName ?? "";
+            set
+            {
+                if (Config != null)
+                {
+                    Config.DefaultWeChatUserName = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         public MainWindow()
@@ -135,6 +151,7 @@ namespace HelpMeChat
                 }
             }
             Monitor = new UIAutomationMonitor();
+            Monitor.Config = Config;
             Monitor.ShowPopup += OnShowPopup;
             Monitor.HidePopup += OnHidePopup;
             this.StateChanged += MainWindow_StateChanged;
@@ -397,15 +414,17 @@ namespace HelpMeChat
         /// <param name="left">左位置</param>
         /// <param name="top">上位置</param>
         /// <param name="history">聊天历史</param>
-        private void OnShowPopup(double left, double top, List<(string, string)> history)
+        /// <param name="currentUserName">当前用户名称</param>
+        private void OnShowPopup(double left, double top, List<(string, string)> history, string currentUserName)
         {
             Dispatcher.Invoke(() =>
             {
                 if (Config?.PresetReplies == null) return;
                 if (PopupWindow == null || !PopupWindow.IsVisible)
                 {
-                    PopupWindow = new ReplySelectorWindow(Config.PresetReplies);
+                    PopupWindow = new ReplySelectorWindow(Config.PresetReplies, Config.AiConfigs, currentUserName, Config.DefaultOllamaIp, Config.DefaultOllamaPort.ToString(), Config.DefaultModel, history);
                     PopupWindow.ReplySelected += OnReplySelectedInternal;
+                    PopupWindow.AiReplySelected += OnAiReplySelectedInternal;
 
                     // 获取当前显示器 DPI 信息
                     var source = PresentationSource.FromVisual(Application.Current.MainWindow);
@@ -441,12 +460,13 @@ namespace HelpMeChat
         }
 
         /// <summary>
-        /// 回复选择事件
+        /// 内部 AI 回复选择事件
         /// </summary>
-        /// <param name="reply">选择的回复</param>
-        private void OnReplySelected(string reply)
+        /// <param name="reply">选择的 AI 回复</param>
+        private void OnAiReplySelectedInternal(string reply)
         {
-            // 处理回复选择后的逻辑，如果需要
+            Monitor!.OnReplySelected(reply);
+            OnHidePopup();
         }
 
         /// <summary>

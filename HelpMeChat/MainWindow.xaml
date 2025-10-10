@@ -177,6 +177,9 @@
                         </TabItem.Header>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel Orientation="Vertical" Margin="6">
+                                <Label Content="微信用户名"/>
+                                <TextBox Text="{Binding DefaultWeChatUserName}" Margin="4"/>
+
                                 <Label Content="Ollama IP 地址"/>
                                 <TextBox Text="{Binding DefaultOllamaIp}" Margin="4"/>
 

@@ -1,7 +1,7 @@
 <Window x:Class="HelpMeChat.ReplySelectorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="选择回复" Height="180" Width="320" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True" ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        Title="选择回复" Height="300" Width="500" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True" ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Window.Resources>
         <!-- 主题配色 -->
         <SolidColorBrush x:Key="AccentBrush" Color="#10B981"/>
@@ -13,13 +13,13 @@
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Padding" Value="4,2"/>
             <Setter Property="Margin" Value="4"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="MinWidth" Value="70"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="MinWidth" Value="60"/>
+            <Setter Property="FontSize" Value="10"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -42,15 +42,32 @@
             </Setter>
         </Style>
 
+        <!-- 输入样式 -->
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="10"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Margin" Value="4,4,0,2"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="10"/>
+        </Style>
+
         <!-- ComboBox 样式 -->
         <Style TargetType="ComboBox">
             <Setter Property="Margin" Value="4"/>
-            <Setter Property="Height" Value="24"/>
+            <Setter Property="Height" Value="22"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Background" Value="#F3F4F6"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="10"/>
         </Style>
     </Window.Resources>
 
@@ -65,16 +82,39 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="20"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="选择预设回复" FontWeight="Bold" FontSize="11" Margin="0,0,0,6" Foreground="{StaticResource TextBrush}" Grid.Column="0"/>
+                <TextBlock Text="选择回复" FontWeight="Bold" FontSize="10" Margin="0,0,0,6" Foreground="{StaticResource TextBrush}" Grid.Column="0"/>
                 <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click" Grid.Column="1" Width="20" MinWidth="20" Height="20" FontSize="10" Margin="0,0,0,0"/>
             </Grid>
-            <StackPanel Grid.Row="1">
-                <StackPanel Orientation="Horizontal">
-                    <ComboBox x:Name="ReplyComboBox" Width="210" SelectionChanged="ReplyComboBox_SelectionChanged"/>
-                    <Button x:Name="ConfirmButton" Content="确定" Click="ConfirmButton_Click"/>
-                </StackPanel>
-                <TextBlock x:Name="ValueTextBlock" Margin="0,6,0,0" FontSize="11" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="280"/>
-            </StackPanel>
+            <TabControl Grid.Row="1">
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="预设回复" FontWeight="Bold" FontSize="10" Foreground="{StaticResource TextBrush}"/>
+                    </TabItem.Header>
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="ReplyComboBox" Width="300" SelectionChanged="ReplyComboBox_SelectionChanged"/>
+                            <Button x:Name="ConfirmButton" Content="确定" Click="ConfirmButton_Click"/>
+                        </StackPanel>
+                        <TextBlock x:Name="ValueTextBlock" Margin="0,6,0,0" FontSize="10" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400"/>
+                    </StackPanel>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="AI 生成" FontWeight="Bold" FontSize="10" Foreground="{StaticResource TextBrush}"/>
+                    </TabItem.Header>
+                    <StackPanel Orientation="Vertical">
+                        <Label Content="选择提示词" Margin="0,0,0,0"/>
+                        <ComboBox x:Name="PromptComboBox" Width="450" SelectionChanged="PromptComboBox_SelectionChanged"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button x:Name="GenerateAiButton" Content="生成 AI 回复" Click="GenerateAiButton_Click"/>
+                            <Button x:Name="CancelAiButton" Content="取消" Click="CancelAiButton_Click" IsEnabled="False"/>
+                            <Button x:Name="RegenerateAiButton" Content="重新生成" Click="RegenerateAiButton_Click" IsEnabled="False"/>
+                        </StackPanel>
+                        <TextBlock x:Name="AiResponseTextBlock" Margin="0,6,0,0" FontSize="10" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400" Height="80" Background="#F3F4F6" Padding="4"/>
+                        <Button x:Name="ConfirmAiButton" Content="确认 AI 回复" Click="ConfirmAiButton_Click" Margin="0,6,0,0" IsEnabled="False"/>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
         </Grid>
     </Border>
 </Window>
