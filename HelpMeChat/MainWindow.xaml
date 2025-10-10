@@ -5,28 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HelpMeChat"
         mc:Ignorable="d"
-        Title="HelpMeChat" Height="600" Width="800"
+        Title="HelpMeChat" Height="620" Width="800"
         Background="#F8FAFC">
     <Window.Resources>
         <!-- 主题配色 -->
         <SolidColorBrush x:Key="AccentBrush" Color="#10B981"/>
-        <SolidColorBrush x:Key="HeaderBg" Color="#0F172A"/>
-        <SolidColorBrush x:Key="HeaderFg" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="HeaderBg" Color="#1E293B"/>
+        <SolidColorBrush x:Key="HeaderFg" Color="#F1F5F9"/>
         <SolidColorBrush x:Key="CardBg" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="BorderBrushColor" Color="#E5E7EB"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#111827"/>
+        <SolidColorBrush x:Key="BorderBrushColor" Color="#E2E8F0"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#334155"/>
 
         <!-- 扁平按钮样式 -->
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="Margin" Value="6"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="4"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="MinWidth" Value="96"/>
-            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -54,17 +54,17 @@
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Background" Value="#F3F4F6"/>
             <Setter Property="Padding" Value="8"/>
-            <Setter Property="Margin" Value="6"/>
+            <Setter Property="Margin" Value="4"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
         <Style TargetType="Label">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="Margin" Value="6,6,0,4"/>
+            <Setter Property="Margin" Value="4,4,0,2"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style TargetType="ListBox">
-            <Setter Property="Margin" Value="6"/>
+            <Setter Property="Margin" Value="4"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="{StaticResource CardBg}"/>
@@ -73,11 +73,16 @@
         <!-- 卡片容器样式 -->
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource CardBg}"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="12"/>
-            <Setter Property="Margin" Value="10"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="6"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#000000" Opacity="0.1"/>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <local:FirstLineConverter x:Key="FirstLineConverter"/>
@@ -91,45 +96,52 @@
 
         <!-- 顶部标题 -->
         <Grid Background="{StaticResource HeaderBg}" Grid.Row="0">
-            <StackPanel Orientation="Vertical" Margin="16,0" VerticalAlignment="Center">
-                <TextBlock Text="HelpMeChat" Foreground="{StaticResource HeaderFg}" FontSize="20" FontWeight="Bold"/>
-                <TextBlock Text="微信快速回复助手" Foreground="#A7F3D0" FontSize="12"/>
+            <StackPanel Orientation="Vertical" Margin="12,0" VerticalAlignment="Center">
+                <TextBlock Text="HelpMeChat" Foreground="{StaticResource HeaderFg}" FontSize="18" FontWeight="Bold"/>
+                <TextBlock Text="微信快速回复助手" Foreground="#A7F3D0" FontSize="11"/>
             </StackPanel>
         </Grid>
 
         <!-- 主体设置区域 -->
         <Border Grid.Row="1" Style="{StaticResource CardStyle}">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10" Height="45">
-                    <TextBlock x:Name="StatusTextBlock" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}"/>
-                    <Button Content="保存配置" Click="SaveConfig_Click"/>
-                </StackPanel>
-
-                <TabControl Grid.Row="1">
+                <TabControl Grid.Column="0">
                     <TabItem>
                         <TabItem.Header>
-                            <TextBlock Text="预设回复设置" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="快速回复" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
                         </TabItem.Header>
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*" MinHeight="120"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
                             <ListBox x:Name="PresetRepliesListBox" Grid.Row="0" ItemsSource="{Binding PresetReplies}" SelectionMode="Single" SelectionChanged="PresetRepliesListBox_SelectionChanged" AlternationCount="2">
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="8"/>
+                                        <Setter Property="Margin" Value="2"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="BorderBrush" Value="Transparent"/>
                                         <Style.Triggers>
                                             <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                                                <Setter Property="Background" Value="#D1FAE5"/>
+                                                <Setter Property="Background" Value="#F8FAFC"/>
                                             </Trigger>
                                             <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                                <Setter Property="Background" Value="#F3F4F6"/>
+                                                <Setter Property="Background" Value="#FFFFFF"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#E0F2FE"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Background" Value="#C7E4F7"/>
+                                                <Setter Property="BorderBrush" Value="#10B981"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -137,17 +149,19 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Key}" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding Value, Converter={StaticResource FirstLineConverter}}" FontStyle="Italic" TextTrimming="CharacterEllipsis" MaxWidth="300"/>
+                                            <TextBlock Text="{Binding Key}" FontWeight="Bold" FontSize="11"/>
+                                            <TextBlock Text="{Binding Value, Converter={StaticResource FirstLineConverter}}" FontStyle="Italic" TextTrimming="CharacterEllipsis" MaxWidth="300" FontSize="11"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
 
-                            <Border Grid.Row="1" Background="#F3F4F6" Padding="10" Margin="0,10,0,0">
+                            <Border Grid.Row="1" Background="#F3F4F6" Padding="8" Margin="0,6,0,0">
                                 <StackPanel Orientation="Vertical">
-                                    <TextBox x:Name="KeyTextBox" Margin="6" Text="输入显示名称"/>
-                                    <TextBox x:Name="ValueTextBox" Margin="6" Height="80" Text="输入回复内容" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                                    <Label Content="显示名称"/>
+                                    <TextBox x:Name="KeyTextBox" Margin="4"/>
+                                    <Label Content="回复内容"/>
+                                    <TextBox x:Name="ValueTextBox" Margin="4" Height="80" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
                                     <StackPanel Orientation="Horizontal">
                                         <Button Content="添加" Click="AddReply_Click"/>
                                         <Button Content="修改" Click="ModifyReply_Click"/>
@@ -162,37 +176,49 @@
                             <TextBlock Text="AI 设置" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
                         </TabItem.Header>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Orientation="Vertical" Margin="10">
+                            <StackPanel Orientation="Vertical" Margin="6">
                                 <Label Content="Ollama IP 地址"/>
-                                <TextBox Text="{Binding DefaultOllamaIp}" Margin="6"/>
+                                <TextBox Text="{Binding DefaultOllamaIp}" Margin="4"/>
 
                                 <Label Content="Ollama 端口号"/>
-                                <TextBox Text="{Binding DefaultOllamaPort}" Margin="6"/>
+                                <TextBox Text="{Binding DefaultOllamaPort}" Margin="4"/>
 
                                 <Label Content="模型名称"/>
-                                <TextBox Text="{Binding DefaultModel}" Margin="6"/>
+                                <TextBox Text="{Binding DefaultModel}" Margin="4"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
                     <TabItem>
                         <TabItem.Header>
-                            <TextBlock Text="AI 设定管理" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="AI 提示词" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
                         </TabItem.Header>
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*" MinHeight="120"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
                             <ListBox x:Name="AiConfigsListBox" Grid.Row="0" ItemsSource="{Binding AiConfigs}" SelectionMode="Single" SelectionChanged="AiConfigsListBox_SelectionChanged" AlternationCount="2">
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="8"/>
+                                        <Setter Property="Margin" Value="2"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="BorderBrush" Value="Transparent"/>
                                         <Style.Triggers>
                                             <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                                                <Setter Property="Background" Value="#D1FAE5"/>
+                                                <Setter Property="Background" Value="#F8FAFC"/>
                                             </Trigger>
                                             <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                                <Setter Property="Background" Value="#F3F4F6"/>
+                                                <Setter Property="Background" Value="#FFFFFF"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#E0F2FE"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Background" Value="#C7E4F7"/>
+                                                <Setter Property="BorderBrush" Value="#10B981"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -200,18 +226,23 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding Prompt, Converter={StaticResource FirstLineConverter}}" FontStyle="Italic" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="11"/>
+                                            <TextBlock Text="{Binding Prompt, Converter={StaticResource FirstLineConverter}}" FontStyle="Italic" TextTrimming="CharacterEllipsis" FontSize="11"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
 
-                            <Border Grid.Row="1" Background="#F3F4F6" Padding="10" Margin="0,10,0,0">
+                            <Border Grid.Row="1" Background="#F3F4F6" Padding="8" Margin="0,6,0,0">
                                 <StackPanel Orientation="Vertical">
-                                    <TextBox x:Name="AiNameTextBox" Margin="6" Text="输入设定名称"/>
-                                    <CheckBox x:Name="AiIsSharedCheckBox" Margin="6" Content="是否为共用"/>
-                                    <TextBox x:Name="AiPromptTextBox" Margin="6" Height="80" Text="输入提示词" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                                    <Label Content="设定名称"/>
+                                    <TextBox x:Name="AiNameTextBox" Margin="4"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="是否共享" VerticalAlignment="Center"/>
+                                        <CheckBox x:Name="AiIsSharedCheckBox" Margin="4" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Label Content="提示词"/>
+                                    <TextBox x:Name="AiPromptTextBox" Margin="4" Height="80" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
                                     <StackPanel Orientation="Horizontal">
                                         <Button Content="添加" Click="AddAiConfig_Click"/>
                                         <Button Content="修改" Click="ModifyAiConfig_Click"/>
@@ -222,6 +253,15 @@
                         </Grid>
                     </TabItem>
                 </TabControl>
+
+                <Grid Grid.Column="1" VerticalAlignment="Top" Margin="10,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="StatusTextBlock" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" Margin="0,0,10,0"/>
+                    <Button Content="保存配置" Grid.Column="1" Click="SaveConfig_Click"/>
+                </Grid>
             </Grid>
         </Border>
     </Grid>
