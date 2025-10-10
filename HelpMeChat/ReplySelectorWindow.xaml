@@ -6,24 +6,24 @@
         <!-- 主题配色 -->
         <SolidColorBrush x:Key="AccentBrush" Color="#10B981"/>
         <SolidColorBrush x:Key="CardBg" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="BorderBrushColor" Color="#E5E7EB"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#111827"/>
+        <SolidColorBrush x:Key="BorderBrushColor" Color="#E2E8F0"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#334155"/>
 
         <!-- 扁平按钮样式 -->
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Padding" Value="8,4"/>
             <Setter Property="Margin" Value="4"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="MinWidth" Value="60"/>
-            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -50,28 +50,41 @@
             <Setter Property="Margin" Value="4"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="10"/>
         </Style>
         <Style TargetType="Label">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Margin" Value="4,4,0,2"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="10"/>
         </Style>
 
         <!-- ComboBox 样式 -->
         <Style TargetType="ComboBox">
             <Setter Property="Margin" Value="4"/>
-            <Setter Property="Height" Value="22"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Background" Value="#F3F4F6"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="10"/>
         </Style>
+
+        <!-- 卡片容器样式 -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#000000" Opacity="0.1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
-    <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1" CornerRadius="8" Padding="10">
+    <Border Style="{StaticResource CardStyle}">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -82,25 +95,25 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="20"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="选择回复" FontWeight="Bold" FontSize="10" Margin="0,0,0,6" Foreground="{StaticResource TextBrush}" Grid.Column="0"/>
-                <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click" Grid.Column="1" Width="20" MinWidth="20" Height="20" FontSize="10" Margin="0,0,0,0"/>
+                <TextBlock Text="选择回复" FontWeight="Bold" Margin="0,0,0,6" Foreground="{StaticResource TextBrush}" Grid.Column="0"/>
+                <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click" Grid.Column="1" Width="20" MinWidth="20" Height="20" Margin="0,0,0,0"/>
             </Grid>
             <TabControl Grid.Row="1">
                 <TabItem>
                     <TabItem.Header>
-                        <TextBlock Text="预设回复" FontWeight="Bold" FontSize="10" Foreground="{StaticResource TextBrush}"/>
+                        <TextBlock Text="预设回复" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
                     </TabItem.Header>
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
                             <ComboBox x:Name="ReplyComboBox" Width="300" SelectionChanged="ReplyComboBox_SelectionChanged"/>
                             <Button x:Name="ConfirmButton" Content="确定" Click="ConfirmButton_Click"/>
                         </StackPanel>
-                        <TextBlock x:Name="ValueTextBlock" Margin="0,6,0,0" FontSize="10" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400"/>
+                        <TextBlock x:Name="ValueTextBlock" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400"/>
                     </StackPanel>
                 </TabItem>
                 <TabItem>
                     <TabItem.Header>
-                        <TextBlock Text="AI 生成" FontWeight="Bold" FontSize="10" Foreground="{StaticResource TextBrush}"/>
+                        <TextBlock Text="AI 生成" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
                     </TabItem.Header>
                     <StackPanel Orientation="Vertical">
                         <Label Content="选择提示词" Margin="0,0,0,0"/>
@@ -110,7 +123,9 @@
                             <Button x:Name="CancelAiButton" Content="取消" Click="CancelAiButton_Click" IsEnabled="False"/>
                             <Button x:Name="RegenerateAiButton" Content="重新生成" Click="RegenerateAiButton_Click" IsEnabled="False"/>
                         </StackPanel>
-                        <TextBlock x:Name="AiResponseTextBlock" Margin="0,6,0,0" FontSize="10" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400" Height="80" Background="#F3F4F6" Padding="4"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Height="80">
+                            <TextBlock x:Name="AiResponseTextBlock" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400" Background="#F3F4F6" Padding="4"/>
+                        </ScrollViewer>
                         <Button x:Name="ConfirmAiButton" Content="确认 AI 回复" Click="ConfirmAiButton_Click" Margin="0,6,0,0" IsEnabled="False"/>
                     </StackPanel>
                 </TabItem>
