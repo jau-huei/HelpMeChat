@@ -103,7 +103,7 @@ namespace HelpMeChat
         /// <returns>转换得到的字节数组。</returns>
         public static byte[]? HexToBytes(string hex)
         {
-            if (hex.Length % 2 != 0)
+            if (string.IsNullOrEmpty(hex) || hex.Length % 2 != 0)
                 return null;
 
             int length = hex.Length / 2;
@@ -113,6 +113,21 @@ namespace HelpMeChat
                 bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
             }
             return bytes;
+        }
+
+        /// <summary>
+        /// 获取微信数据库 Msg 目录路径
+        /// </summary>
+        /// <param name="config">应用程序配置</param>
+        /// <returns>Msg 目录路径</returns>
+        private static string GetMsgDirectoryPath(AppConfig config)
+        {
+            string msgDir = config.WeChatDbPath!.TrimEnd(Path.DirectorySeparatorChar);
+            if (Path.GetFileName(msgDir) != "Msg")
+            {
+                msgDir = Path.Combine(msgDir, "Msg");
+            }
+            return msgDir;
         }
 
         /// <summary>
@@ -134,17 +149,9 @@ namespace HelpMeChat
             if (password_bytes == null || password_bytes.Length != 32)
                 return null;
 
-            // 判断路径是否已经包含 Msg 目录
-            string path = config.WeChatDbPath!.TrimEnd(Path.DirectorySeparatorChar);
-            string source;
-            if (Path.GetFileName(path) == "Msg")
-            {
-                source = Path.Combine(config.WeChatDbPath!, dbName);
-            }
-            else
-            {
-                source = Path.Combine(config.WeChatDbPath!, "Msg", dbName);
-            }
+            // 获取 Msg 目录路径并构建源文件路径
+            string msgDir = GetMsgDirectoryPath(config);
+            string source = Path.Combine(msgDir, dbName);
 
             if (!File.Exists(source))
                 return null;
@@ -298,6 +305,65 @@ namespace HelpMeChat
                     return decryptor.TransformFinalBlock(content, 0, content.Length);
                 }
             }
+        }
+
+        /// <summary>
+        /// 解密微信数据库文件，包括 MicroMsg.db 和最大的 MSGXX.db
+        /// </summary>
+        /// <param name="config">应用程序配置</param>
+        /// <param name="password">解密密钥</param>
+        /// <returns>包含解密路径的 DecryptedDatabases 对象，或 null（失败）</returns>
+        public static DecryptedDatabases? DecryptWeChatDatabases(AppConfig config, string password)
+        {
+            // 解密 MicroMsg.db
+            var microMsgPath = DecryptDB(config, "MicroMsg.db", password);
+            if (microMsgPath == null)
+            {
+                return null;
+            }
+
+            // 获取 Msg 目录路径
+            string msgDir = GetMsgDirectoryPath(config);
+            if (!Directory.Exists(msgDir))
+            {
+                return null;
+            }
+
+            // 查找最大的 MSGXX.db 文件
+            var msgFiles = Directory.GetFiles(Path.Combine(msgDir, "Multi"), "MSG*.db");
+            int maxNum = -1;
+            string? maxMsgDb = null;
+            foreach (var file in msgFiles)
+            {
+                var name = Path.GetFileNameWithoutExtension(file);
+                if (name.StartsWith("MSG") && name.Length > 3)
+                {
+                    var numStr = name.Substring(3);
+                    if (int.TryParse(numStr, out int num) && num > maxNum)
+                    {
+                        maxNum = num;
+                        maxMsgDb = Path.GetFileName(file);
+                    }
+                }
+            }
+
+            if (maxMsgDb == null)
+            {
+                return null;
+            }
+
+            // 解密最大的 MSGXX.db
+            var msgXXPath = DecryptDB(config, Path.Combine("Multi", maxMsgDb), password);
+            if (msgXXPath == null)
+            {
+                return null;
+            }
+
+            return new DecryptedDatabases
+            {
+                MicroMsgPath = microMsgPath,
+                MsgXXPath = msgXXPath
+            };
         }
     }
 }

@@ -283,6 +283,8 @@ namespace HelpMeChat
 
             if (value.EndsWith(">>") && !PopupVisible)
             {
+                using var wechatDb = WeChatDBHelper.DecryptWeChatDatabases(Config!, WeChatActualKey!);
+
                 var weChatUserName = Config?.WeChatUserName ?? string.Empty;
                 var history = GetChatHistory(wechatWindow);
                 history.Add(new ChatMessage(weChatUserName, value));
