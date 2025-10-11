@@ -17,8 +17,7 @@
     "表达感激": "真的非常感谢你的帮助！"
   },
   "WeChatUserName": null,
-  "OllamaIp": null,
-  "OllamaPort": 11434,
+  "OllamaService": "http://127.0.0.1:11434/api",
   "Model": null,
   "WeChatDbPath": null,
   "WeChatId": null,

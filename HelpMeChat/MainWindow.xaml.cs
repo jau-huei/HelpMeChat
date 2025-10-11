@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Forms = System.Windows.Forms;
 using Drawing = System.Drawing;
+using Ollama;
 
 namespace HelpMeChat
 {
@@ -59,6 +60,11 @@ namespace HelpMeChat
         private ObservableCollection<AiConfig> AiConfigsPrivate { get; set; } = new ObservableCollection<AiConfig>();
 
         /// <summary>
+        /// 可观察的可用模型集合
+        /// </summary>
+        private ObservableCollection<string> AvailableModelsPrivate { get; set; } = new ObservableCollection<string>();
+
+        /// <summary>
         /// 系统托盘图标
         /// </summary>
         private Forms.NotifyIcon? NotifyIcon { get; set; }
@@ -74,32 +80,21 @@ namespace HelpMeChat
         public ObservableCollection<AiConfig> AiConfigs => AiConfigsPrivate;
 
         /// <summary>
-        /// Ollama IP 地址
+        /// 可用模型集合属性
         /// </summary>
-        public string OllamaIp
-        {
-            get => Config?.OllamaIp ?? "";
-            set
-            {
-                if (Config != null)
-                {
-                    Config.OllamaIp = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        public ObservableCollection<string> AvailableModels => AvailableModelsPrivate;
 
         /// <summary>
-        /// Ollama 端口号
+        /// Ollama 服务地址
         /// </summary>
-        public int OllamaPort
+        public string OllamaService
         {
-            get => Config?.OllamaPort ?? 0;
+            get => Config?.OllamaService ?? "";
             set
             {
                 if (Config != null)
                 {
-                    Config.OllamaPort = value;
+                    Config.OllamaService = value;
                     OnPropertyChanged();
                 }
             }
@@ -219,6 +214,9 @@ namespace HelpMeChat
             NotifyIcon.Text = "HelpMeChat";
             NotifyIcon.DoubleClick += NotifyIcon_DoubleClick;
             NotifyIcon.Visible = false;
+
+            // 异步加载可用模型
+            Task.Run(() => LoadAvailableModelsAsync());
         }
 
         /// <summary>
@@ -335,8 +333,8 @@ namespace HelpMeChat
             // 确保 UserMemories 不为 null
             Config.UserMemories ??= new List<UserMemory>();
             string configPath = "config.json";
-            string json = JsonSerializer.Serialize(Config, new JsonSerializerOptions 
-            { 
+            string json = JsonSerializer.Serialize(Config, new JsonSerializerOptions
+            {
                 WriteIndented = true,
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
@@ -679,6 +677,51 @@ namespace HelpMeChat
         {
             SaveConfig(); // 保存配置
             NotifyIcon!.Dispose();
+        }
+
+        /// <summary>
+        /// 异步加载可用模型列表
+        /// </summary>
+        private async Task LoadAvailableModelsAsync()
+        {
+            try
+            {
+                using var client = new OllamaApiClient(baseUri: new Uri(OllamaService));
+                var modelsResponse = await client.Models.ListModelsAsync();
+                Dispatcher.Invoke(() =>
+                {
+                    AvailableModelsPrivate.Clear();
+                    if (modelsResponse.Models != null)
+                    {
+                        foreach (var model in modelsResponse.Models)
+                        {
+                            if (!string.IsNullOrEmpty(model.Model1))
+                            {
+                                AvailableModelsPrivate.Add(model.Model1);
+                            }
+                        }
+                    }
+                });
+            }
+            catch (Exception)
+            {
+                // 如果加载失败，添加一个默认选项
+                Dispatcher.Invoke(() =>
+                {
+                    AvailableModelsPrivate.Clear();
+                    AvailableModelsPrivate.Add("加载失败，请检查Ollama配置");
+                });
+            }
+        }
+
+        /// <summary>
+        /// 刷新模型按钮点击
+        /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
+        private void RefreshModels_Click(object sender, RoutedEventArgs e)
+        {
+            Task.Run(() => LoadAvailableModelsAsync());
         }
     }
 }

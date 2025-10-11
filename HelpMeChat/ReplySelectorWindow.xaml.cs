@@ -209,7 +209,7 @@ namespace HelpMeChat
             Cts = new CancellationTokenSource();
             try
             {
-                Client ??= new OllamaApiClient();
+                Client ??= new OllamaApiClient(baseUri: new Uri(Config.OllamaService!));
                 var messages = new List<Message>();
 
                 // 添加系统提示

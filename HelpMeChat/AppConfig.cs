@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HelpMeChat
@@ -13,14 +14,9 @@ namespace HelpMeChat
         public string? WeChatUserName { get; set; }
 
         /// <summary>
-        /// Ollama 服务 IP 地址
+        /// Ollama 服务地址
         /// </summary>
-        public string? OllamaIp { get; set; }
-
-        /// <summary>
-        /// Ollama 服务端口号
-        /// </summary>
-        public int OllamaPort { get; set; } = 11434;
+        public string? OllamaService { get; set; } = "http://127.0.0.1:11434/api";
 
         /// <summary>
         /// 模型名称
