@@ -251,7 +251,7 @@ namespace HelpMeChat
                     return;
                 }
                 string pid = weChatProcess.Id.ToString();
-                string? key = WeChatKeyHelper.GetWeChatKey(pid, account);
+                string? key = WeChatDBHelper.GetWeChatKey(pid, account);
                 if (key != null)
                 {
                     WeChatActualKey = key;
