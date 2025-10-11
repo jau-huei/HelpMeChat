@@ -316,6 +316,8 @@ namespace HelpMeChat
         {
             OnCloseSave?.Invoke();
             Cts?.Cancel();
+            Client?.Dispose();
+            Cts?.Dispose();
         }
 
         /// <summary>
