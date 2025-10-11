@@ -576,11 +576,8 @@ namespace HelpMeChat
         /// <summary>
         /// 显示弹出窗口
         /// </summary>
-        /// <param name="left">左位置</param>
-        /// <param name="top">上位置</param>
-        /// <param name="history">聊天历史</param>
-        /// <param name="strNickName">当前会话名称</param>
-        private void OnShowPopup(double left, double top, List<ChatMessage> history, string strNickName)
+        /// <param name="args">弹出窗口参数</param>
+        private void OnShowPopup(ShowPopupArgs args)
         {
             Dispatcher.Invoke(() =>
             {
@@ -588,12 +585,12 @@ namespace HelpMeChat
                 if (PopupWindow == null || !PopupWindow.IsVisible)
                 {
                     // 确保 strNickName 不为空
-                    if (string.IsNullOrEmpty(strNickName))
+                    if (string.IsNullOrEmpty(args.NickName))
                     {
-                        strNickName = Config.WeChatUserName ?? "Default";
+                        args.NickName = Config.WeChatUserName ?? "Default";
                     }
 
-                    PopupWindow = new ReplySelectorWindow(Config, strNickName, history);
+                    PopupWindow = new ReplySelectorWindow(args);
                     PopupWindow.ReplySelected += OnReplySelectedInternal;
                     PopupWindow.AiReplySelected += OnAiReplySelectedInternal;
                     PopupWindow.OnCloseSave += () => SaveConfig();
@@ -608,8 +605,8 @@ namespace HelpMeChat
                     }
 
                     // 将像素坐标转换为 WPF 坐标
-                    PopupWindow.Left = left * dpiX;
-                    PopupWindow.Top = top * dpiY - PopupWindow.Height;
+                    PopupWindow.Left = args.Left * dpiX;
+                    PopupWindow.Top = args.Top * dpiY - PopupWindow.Height;
 
                     PopupWindow.Show();
                 }

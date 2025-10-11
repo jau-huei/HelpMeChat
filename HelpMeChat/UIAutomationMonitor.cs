@@ -47,7 +47,7 @@ namespace HelpMeChat
         /// <summary>
         /// 当需要显示弹出窗口时触发的事件，传递位置坐标和聊天历史列表。
         /// </summary>
-        public event Action<double, double, List<ChatMessage>, string>? ShowPopup;
+        public event Action<ShowPopupArgs>? ShowPopup;
 
         /// <summary>
         /// 当需要隐藏弹出窗口时触发的事件。
@@ -268,7 +268,7 @@ namespace HelpMeChat
                 LastValue = value;
                 EvaluatePopupLogic(value);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -291,7 +291,14 @@ namespace HelpMeChat
                 var weChatUserName = Config?.WeChatUserName ?? string.Empty;
                 history.Add(new ChatMessage(weChatUserName, value));
 
-                ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history, strNickName);
+                ShowPopup?.Invoke(new ShowPopupArgs
+                {
+                    Left = EditElement.BoundingRectangle.Left,
+                    Top = EditElement.BoundingRectangle.Top,
+                    History = history,
+                    NickName = strNickName,
+                    ApiConfig = Config
+                });
                 PopupVisible = true;
             }
             else if (!value.EndsWith(">>") && PopupVisible)
