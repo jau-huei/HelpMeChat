@@ -423,7 +423,7 @@ namespace HelpMeChat
         /// <param name="top">上位置</param>
         /// <param name="history">聊天历史</param>
         /// <param name="currentUserName">当前用户名称</param>
-        private void OnShowPopup(double left, double top, List<(string, string)> history, string currentUserName)
+        private void OnShowPopup(double left, double top, List<ChatMessage> history, string currentUserName)
         {
             Dispatcher.Invoke(() =>
             {

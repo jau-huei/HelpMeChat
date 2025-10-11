@@ -45,7 +45,7 @@ namespace HelpMeChat
         /// <summary>
         /// 聊天历史
         /// </summary>
-        private List<(string, string)>? ChatHistory { get; set; }
+        private List<ChatMessage>? ChatHistory { get; set; }
 
         /// <summary>
         /// Ollama API 客户端实例
@@ -83,7 +83,7 @@ namespace HelpMeChat
         /// <param name="config">应用程序配置</param>
         /// <param name="currentUserName">当前对话用户名称</param>
         /// <param name="history">聊天历史</param>
-        public ReplySelectorWindow(AppConfig config, string currentUserName, List<(string, string)> history)
+        public ReplySelectorWindow(AppConfig config, string currentUserName, List<ChatMessage> history)
         {
             InitializeComponent();
             Config = config;
@@ -198,7 +198,8 @@ namespace HelpMeChat
             CancelAiButton.IsEnabled = true;
             RegenerateAiButton.IsEnabled = false;
             ConfirmAiButton.IsEnabled = false;
-            AiResponseTextBlock.Text = "正在生成...";
+            AiResponseTextBox.IsReadOnly = true;
+            AiResponseTextBox.Text = "正在生成...";
 
             Cts = new CancellationTokenSource();
             try
@@ -210,7 +211,7 @@ namespace HelpMeChat
                 messages.Add(new Message(MessageRole.System, aiConfig.Prompt ?? string.Empty, null, null));
 
                 // 添加历史对话
-                messages.Add(new Message(MessageRole.User, string.Join("\n", (ChatHistory ?? new List<(string, string)>()).Select(h => $"{h.Item1}:{h.Item2}")), null, null));
+                messages.Add(new Message(MessageRole.User, string.Join("\n", (ChatHistory ?? new List<ChatMessage>()).Select(h => $"{h.Sender}:{h.Message}")), null, null));
 
                 var stream = Client.Chat.GenerateChatCompletionAsync(Config?.DefaultModel ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
 
@@ -226,28 +227,29 @@ namespace HelpMeChat
                         // 同步在 UI 线程执行追加，这样文本更新会立即被应用到可视树
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            if (AiResponseTextBlock.Text == "正在生成...") AiResponseTextBlock.Text = "";
-                            AiResponseTextBlock.Text += chunk;
+                            if (AiResponseTextBox.Text == "正在生成...") AiResponseTextBox.Text = "";
+                            AiResponseTextBox.Text += chunk;
                         });
                     }
                 }, Cts.Token);
-                AiResponse = AiResponseTextBlock.Text;
+                AiResponse = AiResponseTextBox.Text;
                 ConfirmAiButton.IsEnabled = true;
                 RegenerateAiButton.IsEnabled = true;
             }
             catch (OperationCanceledException)
             {
-                AiResponseTextBlock.Text = "已取消";
+                AiResponseTextBox.Text = "已取消";
             }
             catch (Exception ex)
             {
-                AiResponseTextBlock.Text = $"错误: {ex.Message}";
+                AiResponseTextBox.Text = $"错误: {ex.Message}";
             }
             finally
             {
                 IsGenerating = false;
                 GenerateAiButton.IsEnabled = true;
                 CancelAiButton.IsEnabled = false;
+                AiResponseTextBox.IsReadOnly = false;
             }
         }
 
@@ -275,9 +277,10 @@ namespace HelpMeChat
         /// </summary>
         private void ConfirmAiButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(AiResponse))
+            string finalResponse = AiResponseTextBox.Text;
+            if (!string.IsNullOrEmpty(finalResponse))
             {
-                AiReplySelected?.Invoke(AiResponse);
+                AiReplySelected?.Invoke(finalResponse);
                 Close();
             }
         }

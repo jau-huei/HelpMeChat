@@ -124,7 +124,7 @@
                             <Button x:Name="RegenerateAiButton" Content="重新生成" Click="RegenerateAiButton_Click" IsEnabled="False"/>
                         </StackPanel>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Height="80">
-                            <TextBlock x:Name="AiResponseTextBlock" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400" Background="#F3F4F6" Padding="4"/>
+                            <TextBox x:Name="AiResponseTextBox" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                         </ScrollViewer>
                         <Button x:Name="ConfirmAiButton" Content="确认 AI 回复" Click="ConfirmAiButton_Click" Margin="0,6,0,0" IsEnabled="False"/>
                     </StackPanel>

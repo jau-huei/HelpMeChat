@@ -47,7 +47,7 @@ namespace HelpMeChat
         /// <summary>
         /// 当需要显示弹出窗口时触发的事件，传递位置坐标和聊天历史列表。
         /// </summary>
-        public event Action<double, double, List<(string, string)>, string>? ShowPopup;
+        public event Action<double, double, List<ChatMessage>, string>? ShowPopup;
 
         /// <summary>
         /// 当需要隐藏弹出窗口时触发的事件。
@@ -270,7 +270,7 @@ namespace HelpMeChat
             {
                 var weChatUserName = Config?.DefaultWeChatUserName ?? string.Empty;
                 var history = GetChatHistory(wechatWindow);
-                history.Add((weChatUserName, value));
+                history.Add(new ChatMessage(weChatUserName, value));
 
                 var name = EditElement.Properties.Name.Value ?? string.Empty;
                 ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history, name);
@@ -288,14 +288,14 @@ namespace HelpMeChat
         /// </summary>
         /// <param name="wechatWindow">微信窗口元素。</param>
         /// <returns>聊天历史列表，每个元素包含发送者和消息。</returns>
-        private List<(string, string)> GetChatHistory(AutomationElement wechatWindow)
+        private List<ChatMessage> GetChatHistory(AutomationElement wechatWindow)
         {
             var messageList = wechatWindow.FindFirstDescendant(cf => cf.ByName("消息").And(cf.ByControlType(ControlType.List)));
-            if (messageList == null) return new List<(string, string)>();
+            if (messageList == null) return new List<ChatMessage>();
             var listItems = messageList.FindAllDescendants(cf => cf.ByControlType(ControlType.ListItem))
                 .OrderBy(item => item.BoundingRectangle.Top)
                 .ToList();
-            var history = new List<(string, string)>();
+            var history = new List<ChatMessage>();
             foreach (var item in listItems)
             {
                 var name = item.Properties.Name.Value ?? string.Empty;
@@ -305,7 +305,7 @@ namespace HelpMeChat
                 if (button == null) continue;
 
                 string sender = button.Properties.Name.Value ?? "未知";
-                history.Add((sender, name));
+                history.Add(new ChatMessage(sender, name));
             }
             return history;
         }
