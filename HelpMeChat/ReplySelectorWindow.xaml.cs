@@ -70,17 +70,17 @@ namespace HelpMeChat
             InitializeComponent();
             Args = args;
 
-            CurrentMemory = Args?.ApiConfig?.UserMemories?.FirstOrDefault(m => m.UserName == Args.NickName);
+            CurrentMemory = AppConfig.Config?.UserMemories?.FirstOrDefault(m => m.UserName == Args.NickName);
             if (CurrentMemory == null)
             {
                 CurrentMemory = new UserMemory { UserName = Args?.NickName };
-                Args?.ApiConfig?.UserMemories?.Add(CurrentMemory);
+                AppConfig.Config?.UserMemories?.Add(CurrentMemory);
             }
 
-            ReplyComboBox.ItemsSource = Args?.ApiConfig?.PresetReplies?.Keys;
-            if (Args?.ApiConfig?.PresetReplies != null && Args.ApiConfig.PresetReplies.Count > 0)
+            ReplyComboBox.ItemsSource = AppConfig.Config?.PresetReplies?.Keys;
+            if (AppConfig.Config?.PresetReplies != null && AppConfig.Config.PresetReplies.Count > 0)
             {
-                if (!string.IsNullOrEmpty(CurrentMemory.LastPresetReply) && Args.ApiConfig.PresetReplies.ContainsKey(CurrentMemory.LastPresetReply))
+                if (!string.IsNullOrEmpty(CurrentMemory.LastPresetReply) && AppConfig.Config.PresetReplies.ContainsKey(CurrentMemory.LastPresetReply))
                 {
                     ReplyComboBox.SelectedItem = CurrentMemory.LastPresetReply;
                 }
@@ -88,14 +88,14 @@ namespace HelpMeChat
                 {
                     ReplyComboBox.SelectedIndex = 0;
                 }
-                if (ReplyComboBox.SelectedItem is string selectedKey && Args.ApiConfig.PresetReplies.TryGetValue(selectedKey, out string? value))
+                if (ReplyComboBox.SelectedItem is string selectedKey && AppConfig.Config.PresetReplies.TryGetValue(selectedKey, out string? value))
                 {
                     ValueTextBlock.Text = value;
                 }
             }
 
             // 设置提示词 ComboBox
-            var availablePrompts = Args?.ApiConfig?.AiConfigs?.Where(c => c.IsShared || c.Name == Args.NickName).Select(c => c.Name).Distinct().ToList();
+            var availablePrompts = AppConfig.Config?.AiConfigs?.Where(c => c.IsShared || c.Name == Args.NickName).Select(c => c.Name).Distinct().ToList();
             PromptComboBox.ItemsSource = availablePrompts;
             if (availablePrompts != null && availablePrompts.Count > 0)
             {
@@ -114,14 +114,9 @@ namespace HelpMeChat
             this.Closed += ReplySelectorWindow_Closed;
         }
 
-        /// <summary>
-        /// ComboBox选择改变事件
-        /// </summary>
-        /// <param name="sender">事件发送者</param>
-        /// <param name="e">选择改变事件参数</param>
         private void ReplyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ReplyComboBox.SelectedItem is string selectedKey && Args?.ApiConfig?.PresetReplies != null && Args.ApiConfig.PresetReplies.TryGetValue(selectedKey, out string? value))
+            if (ReplyComboBox.SelectedItem is string selectedKey && AppConfig.Config?.PresetReplies != null && AppConfig.Config.PresetReplies.TryGetValue(selectedKey, out string? value))
             {
                 ValueTextBlock.Text = value;
             }
@@ -161,7 +156,7 @@ namespace HelpMeChat
         /// <param name="e">路由事件参数</param>
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ReplyComboBox.SelectedItem is string selectedKey && Args?.ApiConfig?.PresetReplies != null && Args.ApiConfig.PresetReplies.TryGetValue(selectedKey, out string? value) && value != null)
+            if (ReplyComboBox.SelectedItem is string selectedKey && AppConfig.Config?.PresetReplies != null && AppConfig.Config.PresetReplies.TryGetValue(selectedKey, out string? value) && value != null)
             {
                 ReplySelected?.Invoke(value);
                 Close();
@@ -175,8 +170,8 @@ namespace HelpMeChat
         /// <param name="e">路由事件参数</param>
         private async void GenerateAiButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(SelectedPrompt) || Args?.ApiConfig?.AiConfigs == null) return;
-            var aiConfig = Args.ApiConfig.AiConfigs.FirstOrDefault(c => c.Name == SelectedPrompt);
+            if (string.IsNullOrEmpty(SelectedPrompt) || AppConfig.Config?.AiConfigs == null) return;
+            var aiConfig = AppConfig.Config.AiConfigs.FirstOrDefault(c => c.Name == SelectedPrompt);
             if (aiConfig == null) return;
 
             IsGenerating = true;
@@ -189,7 +184,7 @@ namespace HelpMeChat
             Cts = new CancellationTokenSource();
             try
             {
-                Client ??= new OllamaApiClient(baseUri: new Uri(Args.ApiConfig.OllamaService!));
+                Client ??= new OllamaApiClient(baseUri: new Uri(AppConfig.Config.OllamaService!));
                 var messages = new List<Message>();
 
                 // 添加系统提示
@@ -198,7 +193,7 @@ namespace HelpMeChat
                 // 添加历史对话
                 messages.Add(new Message(MessageRole.User, string.Join("\n", (Args?.History ?? new List<ChatMessage>()).Select(h => h.ToFormattedString())), null, null));
 
-                var stream = Client.Chat.GenerateChatCompletionAsync(Args?.ApiConfig?.Model ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
+                var stream = Client.Chat.GenerateChatCompletionAsync(AppConfig.Config?.Model ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
 
                 // 在后台线程处理流，使用同步 Invoke 将每个 chunk 追加到 UI，确保 UI 有机会渲染
                 await Task.Run(async () =>

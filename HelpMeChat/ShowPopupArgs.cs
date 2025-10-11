@@ -26,10 +26,5 @@ namespace HelpMeChat
         /// 昵称
         /// </summary>
         public string? NickName { get; set; }
-
-        /// <summary>
-        /// 应用程序配置
-        /// </summary>
-        public AppConfig? ApiConfig { get; set; }
     }
 }

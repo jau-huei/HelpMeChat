@@ -46,11 +46,6 @@ namespace HelpMeChat
         private ReplySelectorWindow? PopupWindow { get; set; }
 
         /// <summary>
-        /// 应用程序配置
-        /// </summary>
-        private AppConfig? Config { get; set; }
-
-        /// <summary>
         /// 可观察的预设回复集合
         /// </summary>
         private ObservableCollection<KeyValuePair<string, string>> PresetRepliesPrivate { get; set; } = new ObservableCollection<KeyValuePair<string, string>>();
@@ -90,12 +85,12 @@ namespace HelpMeChat
         /// </summary>
         public string OllamaService
         {
-            get => Config?.OllamaService ?? "";
+            get => AppConfig.Config?.OllamaService ?? "";
             set
             {
-                if (Config != null)
+                if (AppConfig.Config != null)
                 {
-                    Config.OllamaService = value;
+                    AppConfig.Config.OllamaService = value;
                     OnPropertyChanged();
                 }
             }
@@ -106,12 +101,12 @@ namespace HelpMeChat
         /// </summary>
         public string Model
         {
-            get => Config?.Model ?? "";
+            get => AppConfig.Config?.Model ?? "";
             set
             {
-                if (Config != null)
+                if (AppConfig.Config != null)
                 {
-                    Config.Model = value;
+                    AppConfig.Config.Model = value;
                     OnPropertyChanged();
                 }
             }
@@ -122,12 +117,12 @@ namespace HelpMeChat
         /// </summary>
         public string WeChatUserName
         {
-            get => Config?.WeChatUserName ?? "";
+            get => AppConfig.Config?.WeChatUserName ?? "";
             set
             {
-                if (Config != null)
+                if (AppConfig.Config != null)
                 {
-                    Config.WeChatUserName = value;
+                    AppConfig.Config.WeChatUserName = value;
                     OnPropertyChanged();
                 }
             }
@@ -148,12 +143,12 @@ namespace HelpMeChat
         /// </summary>
         public string WeChatDbPath
         {
-            get => Config?.WeChatDbPath ?? "";
+            get => AppConfig.Config?.WeChatDbPath ?? "";
             set
             {
-                if (Config != null)
+                if (AppConfig.Config != null)
                 {
-                    Config.WeChatDbPath = value;
+                    AppConfig.Config.WeChatDbPath = value;
                     OnPropertyChanged();
                 }
             }
@@ -177,12 +172,12 @@ namespace HelpMeChat
         /// </summary>
         public string WeChatId
         {
-            get => Config?.WeChatId ?? "";
+            get => AppConfig.Config?.WeChatId ?? "";
             set
             {
-                if (Config != null)
+                if (AppConfig.Config != null)
                 {
-                    Config.WeChatId = value;
+                    AppConfig.Config.WeChatId = value;
                     OnPropertyChanged();
                 }
             }
@@ -193,12 +188,12 @@ namespace HelpMeChat
         /// </summary>
         public string AiContextMessageCount
         {
-            get => (Config?.AiContextMessageCount ?? 100).ToString();
+            get => (AppConfig.Config?.AiContextMessageCount ?? 100).ToString();
             set
             {
-                if (Config != null && int.TryParse(value, out int val))
+                if (AppConfig.Config != null && int.TryParse(value, out int val))
                 {
-                    Config.AiContextMessageCount = val;
+                    AppConfig.Config.AiContextMessageCount = val;
                     OnPropertyChanged();
                 }
             }
@@ -210,17 +205,16 @@ namespace HelpMeChat
         public MainWindow()
         {
             InitializeComponent();
-            Config = LoadConfig();
+            AppConfig.Config = LoadConfig();
             DataContext = this;
-            if (Config.PresetReplies != null)
+            if (AppConfig.Config?.PresetReplies != null)
             {
-                foreach (var pair in Config.PresetReplies)
+                foreach (var pair in AppConfig.Config.PresetReplies)
                 {
                     PresetRepliesPrivate.Add(pair);
                 }
             }
             Monitor = new UIAutomationMonitor();
-            Monitor.Config = Config;
             Monitor.ShowPopup += OnShowPopup;
             Monitor.HidePopup += OnHidePopup;
             this.StateChanged += MainWindow_StateChanged;
@@ -330,33 +324,33 @@ namespace HelpMeChat
             if (File.Exists(configPath))
             {
                 string json = File.ReadAllText(configPath);
-                Config = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
+                AppConfig.Config = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
             }
             else
             {
-                Config = new AppConfig();
+                AppConfig.Config = new AppConfig();
             }
             // 确保属性不为 null
-            Config.PresetReplies ??= new Dictionary<string, string>();
-            Config.AiConfigs ??= new List<AiConfig>();
-            Config.UserMemories ??= new List<UserMemory>();
+            AppConfig.Config.PresetReplies ??= new Dictionary<string, string>();
+            AppConfig.Config.AiConfigs ??= new List<AiConfig>();
+            AppConfig.Config.UserMemories ??= new List<UserMemory>();
             PresetRepliesPrivate.Clear();
-            if (Config.PresetReplies != null)
+            if (AppConfig.Config.PresetReplies != null)
             {
-                foreach (var pair in Config.PresetReplies)
+                foreach (var pair in AppConfig.Config.PresetReplies)
                 {
                     PresetRepliesPrivate.Add(pair);
                 }
             }
             AiConfigsPrivate.Clear();
-            if (Config.AiConfigs != null)
+            if (AppConfig.Config.AiConfigs != null)
             {
-                foreach (var config in Config.AiConfigs)
+                foreach (var config in AppConfig.Config.AiConfigs)
                 {
                     AiConfigsPrivate.Add(config);
                 }
             }
-            return Config;
+            return AppConfig.Config;
         }
 
         /// <summary>
@@ -364,21 +358,21 @@ namespace HelpMeChat
         /// </summary>
         private void SaveConfig()
         {
-            if (Config == null) return;
-            Config.PresetReplies!.Clear();
+            if (AppConfig.Config == null) return;
+            AppConfig.Config.PresetReplies!.Clear();
             foreach (var pair in PresetRepliesPrivate)
             {
-                Config.PresetReplies[pair.Key] = pair.Value;
+                AppConfig.Config.PresetReplies[pair.Key] = pair.Value;
             }
-            Config.AiConfigs!.Clear();
+            AppConfig.Config.AiConfigs!.Clear();
             foreach (var config in AiConfigsPrivate)
             {
-                Config.AiConfigs.Add(config);
+                AppConfig.Config.AiConfigs.Add(config);
             }
             // 确保 UserMemories 不为 null
-            Config.UserMemories ??= new List<UserMemory>();
+            AppConfig.Config.UserMemories ??= new List<UserMemory>();
             string configPath = "config.json";
-            string json = JsonSerializer.Serialize(Config, new JsonSerializerOptions
+            string json = JsonSerializer.Serialize(AppConfig.Config, new JsonSerializerOptions
             {
                 WriteIndented = true,
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
@@ -587,7 +581,7 @@ namespace HelpMeChat
         /// <param name="e">路由事件参数</param>
         private void LoadConfig_Click(object sender, RoutedEventArgs e)
         {
-            Config = LoadConfig();
+            AppConfig.Config = LoadConfig();
         }
 
         /// <summary>
@@ -598,13 +592,13 @@ namespace HelpMeChat
         {
             Dispatcher.Invoke(() =>
             {
-                if (Config?.PresetReplies == null) return;
+                if (AppConfig.Config?.PresetReplies == null) return;
                 if (PopupWindow == null || !PopupWindow.IsVisible)
                 {
                     // 确保 strNickName 不为空
                     if (string.IsNullOrEmpty(args.NickName))
                     {
-                        args.NickName = Config.WeChatUserName ?? "Default";
+                        args.NickName = AppConfig.Config.WeChatUserName ?? "Default";
                     }
 
                     PopupWindow = new ReplySelectorWindow(args);

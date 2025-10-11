@@ -9,6 +9,11 @@ namespace HelpMeChat
     public class AppConfig
     {
         /// <summary>
+        /// 静态共用配置实例
+        /// </summary>
+        public static AppConfig? Config { get; set; }
+
+        /// <summary>
         /// 微信用户名，用于告诉 AI 我是谁
         /// </summary>
         public string? WeChatUserName { get; set; }

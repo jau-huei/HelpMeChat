@@ -71,11 +71,6 @@ namespace HelpMeChat
         private CancellationTokenSource? PollCts { get; set; }
 
         /// <summary>
-        /// 获取或设置应用程序配置，用于获取默认设置。
-        /// </summary>
-        public AppConfig? Config { get; set; }
-
-        /// <summary>
         /// 微信数据库实际密码
         /// </summary>
         public string? WeChatActualKey { get; set; }
@@ -286,19 +281,18 @@ namespace HelpMeChat
 
             if (value.EndsWith(">>") && !PopupVisible)
             {
-                using var wechatDb = WeChatDBHelper.DecryptWeChatDatabases(Config!, WeChatActualKey!);
+                using var wechatDb = WeChatDBHelper.DecryptWeChatDatabases(AppConfig.Config!, WeChatActualKey!);
                 var strNickName = EditElement.Properties.Name.Value ?? string.Empty;
                 var history = GetChatHistory(wechatWindow, wechatDb, strNickName);
-                var weChatUserName = Config?.WeChatUserName ?? string.Empty;
-                history.Add(new ChatMessage(weChatUserName, value));
+                var weChatUserName = AppConfig.Config?.WeChatUserName ?? string.Empty;
+                history.Add(new ChatMessage(weChatUserName, value, DateTime.Now));
 
                 ShowPopup?.Invoke(new ShowPopupArgs
                 {
                     Left = EditElement.BoundingRectangle.Left,
                     Top = EditElement.BoundingRectangle.Top,
                     History = history,
-                    NickName = strNickName,
-                    ApiConfig = Config
+                    NickName = strNickName
                 });
                 PopupVisible = true;
             }
@@ -325,7 +319,7 @@ namespace HelpMeChat
             if (userNames == null || userNames.Count != 1)
                 return GetChatHistory(wechatWindow);
 
-            var msgRecords = wechatDb.GetLatestMessagesByTalker(userNames[0], Config?.AiContextMessageCount ?? 100);
+            var msgRecords = wechatDb.GetLatestMessagesByTalker(userNames[0], AppConfig.Config?.AiContextMessageCount ?? 100);
 
             if (msgRecords != null && msgRecords.Count > 0)
                 return msgRecords.Select(m => m.ToChatMessage()).ToList();
