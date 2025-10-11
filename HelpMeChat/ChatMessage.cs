@@ -57,5 +57,14 @@ namespace HelpMeChat
             Message = message;
             Time = DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime;
         }
+
+        /// <summary>
+        /// 返回聊天消息的字符串表示，用于调试
+        /// </summary>
+        /// <returns>包含关键信息的字符串</returns>
+        public override string ToString()
+        {
+            return $"Sender: {Sender}, Message: {Message}, Time: {Time?.ToString() ?? "null"}";
+        }
     }
 }

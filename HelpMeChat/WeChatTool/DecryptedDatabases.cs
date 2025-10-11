@@ -1,6 +1,8 @@
 using HelpMeChat.WeChatTool;
 using Microsoft.Data.Sqlite;
 using System.IO;
+using ProtoBuf;
+using System.Text;
 
 namespace HelpMeChat.WeChatTool
 {
@@ -76,7 +78,7 @@ namespace HelpMeChat.WeChatTool
             }
             return null;
         }
-            
+
         /// <summary>
         /// 根据 strNickName 查询所有 strUsrName
         /// </summary>
@@ -121,6 +123,7 @@ namespace HelpMeChat.WeChatTool
             {
                 return result;
             }
+            var senderIds = new HashSet<string>();
             using (var connection = new SqliteConnection($"Data Source={MsgXXPath}"))
             {
                 connection.Open();
@@ -133,19 +136,141 @@ namespace HelpMeChat.WeChatTool
                     {
                         while (reader.Read())
                         {
+                            string senderId = strTalker;
+                            if (strTalker.Contains("@chatroom") && !reader.IsDBNull(3))
+                            {
+                                byte[] bytesExtra = (byte[])reader[3];
+                                try
+                                {
+                                    ProtoMsg protoMsg;
+                                    using (MemoryStream stream = new MemoryStream(bytesExtra))
+                                    {
+                                        protoMsg = Serializer.Deserialize<ProtoMsg>(stream);
+                                    }
+                                    if (protoMsg.TVMsg != null)
+                                    {
+                                        foreach (TVType _tmp in protoMsg.TVMsg)
+                                        {
+                                            if (_tmp.Type == 1)
+                                            {
+                                                senderId = _tmp.TypeValue;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // 如果解析失败，保持 senderId 为 strTalker
+                                }
+                            }
+                            senderIds.Add(senderId);
                             var msg = new MsgRecord
                             {
                                 Type = reader.GetInt32(0),
-                                CreateTime = reader.GetInt32(1),
+                                UnixTimestamp = reader.GetInt32(1),
+                                CreateDateTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt32(1)).DateTime,
                                 StrContent = reader.IsDBNull(2) ? null : reader.GetString(2),
                                 BytesExtra = reader.IsDBNull(3) ? null : (byte[])reader[3],
-                                IsSender = reader.GetInt32(4)
+                                IsSender = reader.GetInt32(4),
+                                SenderId = senderId
                             };
                             result.Add(msg);
                         }
                     }
                 }
             }
+
+            // 获取昵称
+            var nickNames = GetNickNamesByUserNames(senderIds.ToArray());
+            foreach (var msg in result)
+            {
+                string nickName = nickNames[msg.SenderId!];
+                if (msg.IsSender == 1)
+                {
+                    msg.NickName = $"我({nickName})";
+                }
+                else
+                {
+                    msg.NickName = nickName;
+                }
+            }
+
+            return result.OrderBy(r => r.UnixTimestamp).ToList();
+        }
+
+        /// <summary>
+        /// 根据用户名的数组查询 Contact 表中的昵称
+        /// </summary>
+        /// <param name="userNames">用户名的数组</param>
+        /// <returns>用户名到昵称的字典</returns>
+        public Dictionary<string, string> GetNickNamesByUserNames(string[] userNames)
+        {
+            var result = new Dictionary<string, string>();
+            if (string.IsNullOrEmpty(MicroMsgPath) || !File.Exists(MicroMsgPath) || userNames.Length == 0)
+            {
+                foreach (var userName in userNames)
+                {
+                    result[userName] = userName;
+                }
+                return result;
+            }
+
+            using (var connection = new SqliteConnection($"Data Source={MicroMsgPath}"))
+            {
+                connection.Open();
+                // 构建 IN 查询的参数
+                var parameters = new List<SqliteParameter>();
+                var inClause = new StringBuilder();
+                for (int i = 0; i < userNames.Length; i++)
+                {
+                    var paramName = $"@userName{i}";
+                    parameters.Add(new SqliteParameter(paramName, userNames[i]));
+                    if (i > 0) inClause.Append(", ");
+                    inClause.Append(paramName);
+                }
+                string sql = $"SELECT UserName, NickName, Remark, Alias FROM Contact WHERE UserName IN ({inClause})";
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddRange(parameters.ToArray());
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string userName = reader.GetString(0);
+                            string nickName = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                            string remark = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                            string alias = reader.IsDBNull(3) ? "" : reader.GetString(3);
+
+                            string displayName = nickName;
+                            if (string.IsNullOrWhiteSpace(displayName))
+                            {
+                                displayName = remark;
+                            }
+                            if (string.IsNullOrWhiteSpace(displayName))
+                            {
+                                displayName = alias;
+                            }
+                            if (string.IsNullOrWhiteSpace(displayName))
+                            {
+                                displayName = userName;
+                            }
+
+                            result[userName] = displayName;
+                        }
+                    }
+                }
+            }
+
+            // 确保所有传入的 userName 都有条目
+            foreach (var userName in userNames)
+            {
+                if (!result.ContainsKey(userName))
+                {
+                    result[userName] = userName;
+                }
+            }
+
             return result;
         }
     }

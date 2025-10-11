@@ -321,6 +321,9 @@ namespace HelpMeChat
 
             var msgRecords = wechatDb.GetLatestMessagesByTalker(userNames[0], 100);
 
+            if (msgRecords != null && msgRecords.Count > 0)
+                return msgRecords.Select(m => m.ToChatMessage()).ToList();
+
             return GetChatHistory(wechatWindow);
         }
 
