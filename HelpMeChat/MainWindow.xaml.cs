@@ -579,21 +579,21 @@ namespace HelpMeChat
         /// <param name="left">左位置</param>
         /// <param name="top">上位置</param>
         /// <param name="history">聊天历史</param>
-        /// <param name="currentUserName">当前用户名称</param>
-        private void OnShowPopup(double left, double top, List<ChatMessage> history, string currentUserName)
+        /// <param name="strNickName">当前会话名称</param>
+        private void OnShowPopup(double left, double top, List<ChatMessage> history, string strNickName)
         {
             Dispatcher.Invoke(() =>
             {
                 if (Config?.PresetReplies == null) return;
                 if (PopupWindow == null || !PopupWindow.IsVisible)
                 {
-                    // 确保 currentUserName 不为空
-                    if (string.IsNullOrEmpty(currentUserName))
+                    // 确保 strNickName 不为空
+                    if (string.IsNullOrEmpty(strNickName))
                     {
-                        currentUserName = Config.WeChatUserName ?? "DefaultUser";
+                        strNickName = Config.WeChatUserName ?? "Default";
                     }
 
-                    PopupWindow = new ReplySelectorWindow(Config, currentUserName, history);
+                    PopupWindow = new ReplySelectorWindow(Config, strNickName, history);
                     PopupWindow.ReplySelected += OnReplySelectedInternal;
                     PopupWindow.AiReplySelected += OnAiReplySelectedInternal;
                     PopupWindow.OnCloseSave += () => SaveConfig();

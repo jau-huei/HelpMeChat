@@ -1,4 +1,4 @@
-using System;
+using Microsoft.Data.Sqlite;
 using System.IO;
 
 namespace HelpMeChat
@@ -45,6 +45,37 @@ namespace HelpMeChat
                     // 忽略删除失败
                 }
             }
+        }
+
+        /// <summary>
+        /// 根据 strNickName 查询所有 strUsrName
+        /// </summary>
+        /// <param name="nickName">昵称</param>
+        /// <returns>用户名的列表</returns>
+        public List<string> GetUserNamesByNickName(string nickName)
+        {
+            var userNames = new List<string>();
+            if (string.IsNullOrEmpty(MicroMsgPath) || !File.Exists(MicroMsgPath))
+            {
+                return userNames;
+            }
+
+            using (var connection = new SqliteConnection($"Data Source={MicroMsgPath}"))
+            {
+                connection.Open();
+                using (var command = new SqliteCommand("SELECT strUsrName FROM Session WHERE strNickName = @nickName", connection))
+                {
+                    command.Parameters.AddWithValue("@nickName", nickName);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            userNames.Add(reader.GetString(0));
+                        }
+                    }
+                }
+            }
+            return userNames;
         }
     }
 }

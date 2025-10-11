@@ -268,7 +268,9 @@ namespace HelpMeChat
                 LastValue = value;
                 EvaluatePopupLogic(value);
             }
-            catch { }
+            catch (Exception ex)
+            {
+            }
         }
 
         /// <summary>
@@ -284,13 +286,12 @@ namespace HelpMeChat
             if (value.EndsWith(">>") && !PopupVisible)
             {
                 using var wechatDb = WeChatDBHelper.DecryptWeChatDatabases(Config!, WeChatActualKey!);
-
+                var strNickName = EditElement.Properties.Name.Value ?? string.Empty;
+                var history = GetChatHistory(wechatWindow, wechatDb, strNickName);
                 var weChatUserName = Config?.WeChatUserName ?? string.Empty;
-                var history = GetChatHistory(wechatWindow);
                 history.Add(new ChatMessage(weChatUserName, value));
 
-                var name = EditElement.Properties.Name.Value ?? string.Empty;
-                ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history, name);
+                ShowPopup?.Invoke(EditElement.BoundingRectangle.Left, EditElement.BoundingRectangle.Top, history, strNickName);
                 PopupVisible = true;
             }
             else if (!value.EndsWith(">>") && PopupVisible)
@@ -298,6 +299,16 @@ namespace HelpMeChat
                 HidePopup?.Invoke();
                 PopupVisible = false;
             }
+        }
+
+        // TODO
+        private List<ChatMessage> GetChatHistory(AutomationElement wechatWindow, DecryptedDatabases? wechatDb, string strNickName)
+        {
+            if (wechatDb == null || string.IsNullOrEmpty(WeChatId) || string.IsNullOrEmpty(strNickName))
+                return GetChatHistory(wechatWindow);
+
+            var userNames = wechatDb.GetUserNamesByNickName(strNickName);
+            return GetChatHistory(wechatWindow);
         }
 
         /// <summary>
