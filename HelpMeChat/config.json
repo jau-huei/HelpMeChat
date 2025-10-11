@@ -1,4 +1,4 @@
-﻿{
+{
   "PresetReplies": {
     "感谢回复": "好的，谢谢你的提醒！我会尽快处理的。",
     "稍等片刻": "稍等一下，我正在查看相关信息。",
@@ -16,10 +16,12 @@
     "提供建议": "或许你可以试试这个方法。",
     "表达感激": "真的非常感谢你的帮助！"
   },
-  "DefaultWeChatUserName": "Wood",
-  "DefaultOllamaIp": "127.0.0.1",
-  "DefaultOllamaPort": 11434,
-  "DefaultModel": "kimi-k2:1t-cloud",
+  "WeChatUserName": null,
+  "OllamaIp": null,
+  "OllamaPort": 11434,
+  "Model": null,
+  "WeChatDbPath": null,
+  "WeChatId": null,
   "AiConfigs": [
     {
       "Name": "同事",

@@ -137,6 +137,8 @@ namespace HelpMeChat
         /// <summary>
         /// ComboBox选择改变事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">选择改变事件参数</param>
         private void ReplyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ReplyComboBox.SelectedItem is string selectedKey && Config?.PresetReplies != null && Config.PresetReplies.TryGetValue(selectedKey, out string? value))
@@ -157,6 +159,8 @@ namespace HelpMeChat
         /// <summary>
         /// Prompt ComboBox 选择改变事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">选择改变事件参数</param>
         private void PromptComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (PromptComboBox.SelectedItem is string promptName)
@@ -173,8 +177,8 @@ namespace HelpMeChat
         /// <summary>
         /// 确定按钮点击事件
         /// </summary>
-        /// <param name="sender">发送者</param>
-        /// <param name="e">事件参数</param>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
             if (ReplyComboBox.SelectedItem is string selectedKey && Config?.PresetReplies != null && Config.PresetReplies.TryGetValue(selectedKey, out string? value) && value != null)
@@ -187,6 +191,8 @@ namespace HelpMeChat
         /// <summary>
         /// 生成 AI 回复按钮点击事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private async void GenerateAiButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(SelectedPrompt) || Config?.AiConfigs == null) return;
@@ -212,7 +218,7 @@ namespace HelpMeChat
                 // 添加历史对话
                 messages.Add(new Message(MessageRole.User, string.Join("\n", (ChatHistory ?? new List<ChatMessage>()).Select(h => $"{h.Sender}:{h.Message}")), null, null));
 
-                var stream = Client.Chat.GenerateChatCompletionAsync(Config?.DefaultModel ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
+                var stream = Client.Chat.GenerateChatCompletionAsync(Config?.Model ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
 
                 // 在后台线程处理流，使用同步 Invoke 将每个 chunk 追加到 UI，确保 UI 有机会渲染
                 await Task.Run(async () =>
@@ -254,6 +260,8 @@ namespace HelpMeChat
         /// <summary>
         /// 取消 AI 生成
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void CancelAiButton_Click(object sender, RoutedEventArgs e)
         {
             Cts?.Cancel();
@@ -262,6 +270,8 @@ namespace HelpMeChat
         /// <summary>
         /// 确认 AI 回复
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void ConfirmAiButton_Click(object sender, RoutedEventArgs e)
         {
             string finalResponse = AiResponseTextBox.Text;
@@ -278,6 +288,8 @@ namespace HelpMeChat
         /// <summary>
         /// 窗口鼠标左键按下事件，用于拖动窗口
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">鼠标按钮事件参数</param>
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -286,6 +298,8 @@ namespace HelpMeChat
         /// <summary>
         /// 关闭按钮点击事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             OnCloseSave?.Invoke();
@@ -296,6 +310,8 @@ namespace HelpMeChat
         /// <summary>
         /// 窗口关闭事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">事件参数</param>
         private void ReplySelectorWindow_Closed(object? sender, EventArgs e)
         {
             OnCloseSave?.Invoke();
@@ -305,6 +321,8 @@ namespace HelpMeChat
         /// <summary>
         /// TabControl 选择改变事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">选择改变事件参数</param>
         private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (CurrentMemory != null && sender is TabControl tabControl)
@@ -316,6 +334,8 @@ namespace HelpMeChat
         /// <summary>
         /// TabControl 加载完成事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void MainTabControl_Loaded(object sender, RoutedEventArgs e)
         {
             // 根据记忆设置标签页

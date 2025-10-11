@@ -113,6 +113,32 @@
                 <TabControl Grid.Column="0">
                     <TabItem>
                         <TabItem.Header>
+                            <TextBlock Text="聊天数据" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
+                        </TabItem.Header>
+                        <StackPanel Orientation="Vertical" Margin="6">
+                            <Label Content="微信ID"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="WeChatIdTextBox" Text="{Binding WeChatId}" Grid.Column="0" Margin="4"/>
+                                <Button Grid.Column="1" Content="获取密码" Click="GetWeChatKey_Click" Margin="4"/>
+                            </Grid>
+                            <TextBlock Text="{Binding WeChatKeyDisplay}" Margin="4" Foreground="{StaticResource TextBrush}"/>
+                            <Label Content="微信数据库路径"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding WeChatDbPath}" Grid.Column="0" Margin="4"/>
+                                <Button Grid.Column="1" Content="选择文件夹" Click="SelectWeChatDbPath_Click" Margin="4"/>
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem>
+                        <TabItem.Header>
                             <TextBlock Text="快速回复" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
                         </TabItem.Header>
                         <Grid>
@@ -178,16 +204,16 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel Orientation="Vertical" Margin="6">
                                 <Label Content="微信用户名"/>
-                                <TextBox Text="{Binding DefaultWeChatUserName}" Margin="4"/>
+                                <TextBox Text="{Binding WeChatUserName}" Margin="4"/>
 
                                 <Label Content="Ollama IP 地址"/>
-                                <TextBox Text="{Binding DefaultOllamaIp}" Margin="4"/>
+                                <TextBox Text="{Binding OllamaIp}" Margin="4"/>
 
                                 <Label Content="Ollama 端口号"/>
-                                <TextBox Text="{Binding DefaultOllamaPort}" Margin="4"/>
+                                <TextBox Text="{Binding OllamaPort}" Margin="4"/>
 
                                 <Label Content="模型名称"/>
-                                <TextBox Text="{Binding DefaultModel}" Margin="4"/>
+                                <TextBox Text="{Binding Model}" Margin="4"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>

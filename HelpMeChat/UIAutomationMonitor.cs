@@ -75,6 +75,21 @@ namespace HelpMeChat
         public AppConfig? Config { get; set; }
 
         /// <summary>
+        /// 微信数据库实际密码
+        /// </summary>
+        public string? WeChatActualKey { get; set; }
+
+        /// <summary>
+        /// 微信ID
+        /// </summary>
+        public string? WeChatId { get; set; }
+
+        /// <summary>
+        /// 微信数据库根路径
+        /// </summary>
+        public string? WeChatDbPath { get; set; }
+
+        /// <summary>
         /// 获取同步锁对象，用于线程安全的操作。
         /// </summary>
         private readonly object Sync = new();
@@ -268,7 +283,7 @@ namespace HelpMeChat
 
             if (value.EndsWith(">>") && !PopupVisible)
             {
-                var weChatUserName = Config?.DefaultWeChatUserName ?? string.Empty;
+                var weChatUserName = Config?.WeChatUserName ?? string.Empty;
                 var history = GetChatHistory(wechatWindow);
                 history.Add(new ChatMessage(weChatUserName, value));
 

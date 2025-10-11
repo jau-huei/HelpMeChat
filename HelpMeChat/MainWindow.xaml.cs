@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Forms = System.Windows.Forms;
@@ -73,64 +74,119 @@ namespace HelpMeChat
         public ObservableCollection<AiConfig> AiConfigs => AiConfigsPrivate;
 
         /// <summary>
-        /// 默认 Ollama IP
+        /// Ollama IP 地址
         /// </summary>
-        public string DefaultOllamaIp
+        public string OllamaIp
         {
-            get => Config?.DefaultOllamaIp ?? "";
+            get => Config?.OllamaIp ?? "";
             set
             {
                 if (Config != null)
                 {
-                    Config.DefaultOllamaIp = value;
+                    Config.OllamaIp = value;
                     OnPropertyChanged();
                 }
             }
         }
 
         /// <summary>
-        /// 默认 Ollama 端口
+        /// Ollama 端口号
         /// </summary>
-        public int DefaultOllamaPort
+        public int OllamaPort
         {
-            get => Config?.DefaultOllamaPort ?? 0;
+            get => Config?.OllamaPort ?? 0;
             set
             {
                 if (Config != null)
                 {
-                    Config.DefaultOllamaPort = value;
+                    Config.OllamaPort = value;
                     OnPropertyChanged();
                 }
             }
         }
 
         /// <summary>
-        /// 默认模型
+        /// 模型名称
         /// </summary>
-        public string DefaultModel
+        public string Model
         {
-            get => Config?.DefaultModel ?? "";
+            get => Config?.Model ?? "";
             set
             {
                 if (Config != null)
                 {
-                    Config.DefaultModel = value;
+                    Config.Model = value;
                     OnPropertyChanged();
                 }
             }
         }
 
         /// <summary>
-        /// 默认微信用户名
+        /// 微信用户名
         /// </summary>
-        public string DefaultWeChatUserName
+        public string WeChatUserName
         {
-            get => Config?.DefaultWeChatUserName ?? "";
+            get => Config?.WeChatUserName ?? "";
             set
             {
                 if (Config != null)
                 {
-                    Config.DefaultWeChatUserName = value;
+                    Config.WeChatUserName = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 微信数据库密码显示（前5位 + ****）
+        /// </summary>
+        private string? WeChatKeyDisplayBacking { get; set; }
+
+        /// <summary>
+        /// 微信数据库实际密码
+        /// </summary>
+        private string? WeChatActualKey { get; set; }
+
+        /// <summary>
+        /// 微信数据库根路径
+        /// </summary>
+        public string WeChatDbPath
+        {
+            get => Config?.WeChatDbPath ?? "";
+            set
+            {
+                if (Config != null)
+                {
+                    Config.WeChatDbPath = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 微信数据库密码显示
+        /// </summary>
+        public string WeChatKeyDisplay
+        {
+            get => WeChatKeyDisplayBacking ?? "未获取";
+            set
+            {
+                WeChatKeyDisplayBacking = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// 微信ID
+        /// </summary>
+        public string WeChatId
+        {
+            get => Config?.WeChatId ?? "";
+            set
+            {
+                if (Config != null)
+                {
+                    Config.WeChatId = value;
                     OnPropertyChanged();
                 }
             }
@@ -163,6 +219,62 @@ namespace HelpMeChat
             NotifyIcon.Text = "HelpMeChat";
             NotifyIcon.DoubleClick += NotifyIcon_DoubleClick;
             NotifyIcon.Visible = false;
+        }
+
+        /// <summary>
+        /// 获取微信密码按钮点击
+        /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
+        private void GetWeChatKey_Click(object sender, RoutedEventArgs e)
+        {
+            string weChatId = WeChatIdTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(weChatId))
+            {
+                WeChatKeyDisplay = "请输入微信ID";
+                return;
+            }
+            Task.Run(() => GetWeChatKeyAsync(weChatId));
+        }
+
+        /// <summary>
+        /// 异步获取微信数据库密码
+        /// </summary>
+        /// <param name="account">微信账号</param>
+        private async Task GetWeChatKeyAsync(string account)
+        {
+            try
+            {
+                // 获取微信进程ID（假设只有一个WeChat进程）
+                var weChatProcess = System.Diagnostics.Process.GetProcessesByName("WeChat").FirstOrDefault();
+                if (weChatProcess == null)
+                {
+                    Dispatcher.Invoke(() => WeChatKeyDisplay = "未找到微信进程");
+                    return;
+                }
+                string pid = weChatProcess.Id.ToString();
+                string? key = WeChatKeyHelper.GetWeChatKey(pid, account);
+                if (key != null)
+                {
+                    WeChatActualKey = key;
+                    if (Monitor != null)
+                    {
+                        Monitor.WeChatActualKey = key;
+                        Monitor.WeChatId = account;
+                    }
+                    // 显示前5位 + ****
+                    string displayKey = key.Length >= 5 ? key.Substring(0, 5) + "****" : key + "****";
+                    Dispatcher.Invoke(() => WeChatKeyDisplay = displayKey);
+                }
+                else
+                {
+                    Dispatcher.Invoke(() => WeChatKeyDisplay = "获取失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() => WeChatKeyDisplay = $"错误: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -234,6 +346,8 @@ namespace HelpMeChat
         /// <summary>
         /// 预设回复列表选择改变事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">选择改变事件参数</param>
         private void PresetRepliesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (PresetRepliesListBox.SelectedItem is KeyValuePair<string, string> selectedPair)
@@ -246,6 +360,8 @@ namespace HelpMeChat
         /// <summary>
         /// 添加回复按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void AddReply_Click(object sender, RoutedEventArgs e)
         {
             string key = KeyTextBox.Text.Trim();
@@ -265,6 +381,8 @@ namespace HelpMeChat
         /// <summary>
         /// 修改回复按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void ModifyReply_Click(object sender, RoutedEventArgs e)
         {
             if (PresetRepliesListBox.SelectedItem is KeyValuePair<string, string> selectedPair)
@@ -293,6 +411,8 @@ namespace HelpMeChat
         /// <summary>
         /// 删除回复按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void RemoveReply_Click(object sender, RoutedEventArgs e)
         {
             if (PresetRepliesListBox.SelectedItem is KeyValuePair<string, string> selectedPair)
@@ -306,6 +426,8 @@ namespace HelpMeChat
         /// <summary>
         /// AI 设定列表选择改变事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">选择改变事件参数</param>
         private void AiConfigsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (AiConfigsListBox.SelectedItem is AiConfig selectedConfig)
@@ -319,6 +441,8 @@ namespace HelpMeChat
         /// <summary>
         /// 添加 AI 设定按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void AddAiConfig_Click(object sender, RoutedEventArgs e)
         {
             string name = AiNameTextBox.Text.Trim();
@@ -344,6 +468,8 @@ namespace HelpMeChat
         /// <summary>
         /// 修改 AI 设定按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void ModifyAiConfig_Click(object sender, RoutedEventArgs e)
         {
             if (AiConfigsListBox.SelectedItem is AiConfig selectedConfig)
@@ -378,6 +504,8 @@ namespace HelpMeChat
         /// <summary>
         /// 删除 AI 设定按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void RemoveAiConfig_Click(object sender, RoutedEventArgs e)
         {
             if (AiConfigsListBox.SelectedItem is AiConfig selectedConfig)
@@ -400,6 +528,8 @@ namespace HelpMeChat
         /// <summary>
         /// 保存配置按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void SaveConfig_Click(object sender, RoutedEventArgs e)
         {
             SaveConfig();
@@ -409,6 +539,8 @@ namespace HelpMeChat
         /// <summary>
         /// 加载配置按钮点击
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
         private void LoadConfig_Click(object sender, RoutedEventArgs e)
         {
             Config = LoadConfig();
@@ -431,7 +563,7 @@ namespace HelpMeChat
                     // 确保 currentUserName 不为空
                     if (string.IsNullOrEmpty(currentUserName))
                     {
-                        currentUserName = Config.DefaultWeChatUserName ?? "DefaultUser";
+                        currentUserName = Config.WeChatUserName ?? "DefaultUser";
                     }
 
                     PopupWindow = new ReplySelectorWindow(Config, currentUserName, history);
@@ -495,6 +627,8 @@ namespace HelpMeChat
         /// <summary>
         /// 窗口状态改变事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">事件参数</param>
         private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
             if (this.WindowState == WindowState.Minimized)
@@ -507,6 +641,8 @@ namespace HelpMeChat
         /// <summary>
         /// 托盘图标双击事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">事件参数</param>
         private void NotifyIcon_DoubleClick(object? sender, EventArgs e)
         {
             this.Show();
@@ -516,8 +652,29 @@ namespace HelpMeChat
         }
 
         /// <summary>
+        /// 选择微信数据库路径按钮点击
+        /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
+        private void SelectWeChatDbPath_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            dialog.Description = "选择微信数据库文件夹 (如 C:\\Users\\xxx\\Documents\\WeChat Files\\wxid_xxx)";
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                WeChatDbPath = dialog.SelectedPath;
+                if (Monitor != null)
+                {
+                    Monitor.WeChatDbPath = dialog.SelectedPath;
+                }
+            }
+        }
+
+        /// <summary>
         /// 窗口关闭事件
         /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">事件参数</param>
         private void MainWindow_Closed(object? sender, EventArgs e)
         {
             SaveConfig(); // 保存配置
