@@ -311,8 +311,6 @@ namespace HelpMeChat
         // TODO
         private List<ChatMessage> GetChatHistory(AutomationElement wechatWindow, DecryptedDatabases? wechatDb, string strNickName)
         {
-            return GetChatHistory(wechatWindow);
-
             if (wechatDb == null || string.IsNullOrEmpty(WeChatId) || string.IsNullOrEmpty(strNickName))
                 return GetChatHistory(wechatWindow);
 
@@ -320,8 +318,8 @@ namespace HelpMeChat
             if (userNames == null || userNames.Count != 1)
                 return GetChatHistory(wechatWindow);
 
-            var smallHeadImgUrl = wechatDb.GetSmallHeadImgUrlByUserName(userNames[0]);
             
+
             return GetChatHistory(wechatWindow);
         }
 
