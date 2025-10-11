@@ -133,7 +133,7 @@ namespace HelpMeChat
         }
 
         /// <summary>
-        /// 微信数据库密码显示（前5位 + ****）
+        /// 微信数据库密码显示（前12位 + ****）
         /// </summary>
         private string? WeChatKeyDisplayBacking { get; set; }
 
@@ -260,8 +260,8 @@ namespace HelpMeChat
                         Monitor.WeChatActualKey = key;
                         Monitor.WeChatId = account;
                     }
-                    // 显示前5位 + ****
-                    string displayKey = key.Length >= 5 ? key.Substring(0, 5) + "****" : key + "****";
+                    // 显示前 12 位 + ****
+                    string displayKey = key.Length >= 12 ? key.Substring(0, 12) + "****" : key + "****";
                     Dispatcher.Invoke(() => WeChatKeyDisplay = displayKey);
                 }
                 else
