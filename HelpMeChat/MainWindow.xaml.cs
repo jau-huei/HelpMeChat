@@ -560,6 +560,7 @@ namespace HelpMeChat
         {
             SaveConfig();
             LoadConfig();
+            MessageBox.Show("配置保存成功！");
         }
 
         /// <summary>
