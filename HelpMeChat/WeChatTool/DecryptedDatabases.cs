@@ -48,6 +48,35 @@ namespace HelpMeChat
         }
 
         /// <summary>
+        /// 根据 usrName 查询 ContactHeadImgUrl 表中的 smallHeadImgUrl
+        /// </summary>
+        /// <param name="userName">用户名</param>
+        /// <returns>smallHeadImgUrl，如果未找到则返回 null</returns>
+        public string? GetSmallHeadImgUrlByUserName(string userName)
+        {
+            if (string.IsNullOrEmpty(MicroMsgPath) || !File.Exists(MicroMsgPath))
+            {
+                return null;
+            }
+            using (var connection = new SqliteConnection($"Data Source={MicroMsgPath}"))
+            {
+                connection.Open();
+                using (var command = new SqliteCommand("SELECT smallHeadImgUrl FROM ContactHeadImgUrl WHERE usrName = @userName", connection))
+                {
+                    command.Parameters.AddWithValue("@userName", userName);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return reader.IsDBNull(0) ? null : reader.GetString(0);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+            
+        /// <summary>
         /// 根据 strNickName 查询所有 strUsrName
         /// </summary>
         /// <param name="nickName">昵称</param>
