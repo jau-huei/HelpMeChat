@@ -34,6 +34,11 @@ namespace HelpMeChat
         public string? WeChatId { get; set; }
 
         /// <summary>
+        /// AI 上下文消息数量：从数据库中捞多少数据过来喂给 AI 生成对话
+        /// </summary>
+        public int AiContextMessageCount { get; set; } = 100;
+
+        /// <summary>
         /// 预设回复字典：Key 为显示名称，Value 为实际回复内容
         /// </summary>
         public Dictionary<string, string>? PresetReplies { get; set; }

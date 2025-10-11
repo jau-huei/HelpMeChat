@@ -66,5 +66,15 @@ namespace HelpMeChat
         {
             return $"Sender: {Sender}, Message: {Message}, Time: {Time?.ToString() ?? "null"}";
         }
+
+        /// <summary>
+        /// 返回格式化的聊天消息字符串
+        /// </summary>
+        /// <returns>格式为 [YYYY/MM/dd HH:mm:ss] Sender\nMessage 的字符串</returns>
+        public string ToFormattedString()
+        {
+            string timeStr = Time?.ToString("yyyy/MM/dd HH:mm:ss") ?? "未知时间";
+            return $"[{timeStr}] {Sender}\n{Message}";
+        }
     }
 }

@@ -189,6 +189,22 @@ namespace HelpMeChat
         }
 
         /// <summary>
+        /// AI 上下文消息数量
+        /// </summary>
+        public string AiContextMessageCount
+        {
+            get => (Config?.AiContextMessageCount ?? 100).ToString();
+            set
+            {
+                if (Config != null && int.TryParse(value, out int val))
+                {
+                    Config.AiContextMessageCount = val;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         public MainWindow()

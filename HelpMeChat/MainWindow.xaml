@@ -293,6 +293,8 @@
                                 <TextBox Text="{Binding WeChatDbPath}" Grid.Column="0" Margin="4"/>
                                 <Button Grid.Column="1" Content="选择文件夹" Click="SelectWeChatDbPath_Click" Margin="4"/>
                             </Grid>
+                            <Label Content="AI 上下文消息数量"/>
+                            <TextBox Text="{Binding AiContextMessageCount}" Margin="4"/>
                         </StackPanel>
                     </TabItem>
                 </TabControl>

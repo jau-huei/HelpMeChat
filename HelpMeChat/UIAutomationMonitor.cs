@@ -309,7 +309,13 @@ namespace HelpMeChat
             }
         }
 
-        // TODO
+        /// <summary>
+        /// 获取聊天历史记录，首先尝试从解密的微信数据库中获取，如果失败则从UI元素中获取。
+        /// </summary>
+        /// <param name="wechatWindow">微信窗口元素。</param>
+        /// <param name="wechatDb">解密的微信数据库。</param>
+        /// <param name="strNickName">昵称字符串。</param>
+        /// <returns>聊天历史列表。</returns>
         private List<ChatMessage> GetChatHistory(AutomationElement wechatWindow, DecryptedDatabases? wechatDb, string strNickName)
         {
             if (wechatDb == null || string.IsNullOrEmpty(WeChatId) || string.IsNullOrEmpty(strNickName))
@@ -319,7 +325,7 @@ namespace HelpMeChat
             if (userNames == null || userNames.Count != 1)
                 return GetChatHistory(wechatWindow);
 
-            var msgRecords = wechatDb.GetLatestMessagesByTalker(userNames[0], 100);
+            var msgRecords = wechatDb.GetLatestMessagesByTalker(userNames[0], Config?.AiContextMessageCount ?? 100);
 
             if (msgRecords != null && msgRecords.Count > 0)
                 return msgRecords.Select(m => m.ToChatMessage()).ToList();

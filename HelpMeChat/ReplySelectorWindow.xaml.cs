@@ -196,7 +196,7 @@ namespace HelpMeChat
                 messages.Add(new Message(MessageRole.System, aiConfig.Prompt ?? string.Empty, null, null));
 
                 // 添加历史对话
-                messages.Add(new Message(MessageRole.User, string.Join("\n", (Args?.History ?? new List<ChatMessage>()).Select(h => $"{h.Sender}:{h.Message}")), null, null));
+                messages.Add(new Message(MessageRole.User, string.Join("\n", (Args?.History ?? new List<ChatMessage>()).Select(h => h.ToFormattedString())), null, null));
 
                 var stream = Client.Chat.GenerateChatCompletionAsync(Args?.ApiConfig?.Model ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
 
