@@ -44,6 +44,11 @@ namespace HelpMeChat
         public int AiContextMessageCount { get; set; } = 100;
 
         /// <summary>
+        /// 一般提示词，用于指导 AI 了解对话记录格式和回复格式
+        /// </summary>
+        public string? Prompt { get; set; }
+
+        /// <summary>
         /// 预设回复字典：Key 为显示名称，Value 为实际回复内容
         /// </summary>
         public Dictionary<string, string>? PresetReplies { get; set; }

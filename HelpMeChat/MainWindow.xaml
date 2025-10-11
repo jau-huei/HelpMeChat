@@ -181,7 +181,7 @@
                     </TabItem>
                     <TabItem>
                         <TabItem.Header>
-                            <TextBlock Text="AI 设置" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="通用 AI 设置" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
                         </TabItem.Header>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel Orientation="Vertical" Margin="6">
@@ -200,12 +200,15 @@
                                     <ComboBox ItemsSource="{Binding AvailableModels}" SelectedItem="{Binding Model}" Grid.Column="0"/>
                                     <Button Grid.Column="1" Content="刷新模型" Click="RefreshModels_Click"/>
                                 </Grid>
+
+                                <Label Content="一般提示词"/>
+                                <TextBox Text="{Binding Prompt}" Margin="4" Height="120" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
                     <TabItem>
                         <TabItem.Header>
-                            <TextBlock Text="AI 提示词" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="对话 AI 提示词" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
                         </TabItem.Header>
                         <Grid>
                             <Grid.RowDefinitions>

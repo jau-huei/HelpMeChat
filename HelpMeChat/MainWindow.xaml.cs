@@ -200,6 +200,22 @@ namespace HelpMeChat
         }
 
         /// <summary>
+        /// 一般提示词
+        /// </summary>
+        public string Prompt
+        {
+            get => AppConfig.Config?.Prompt ?? "";
+            set
+            {
+                if (AppConfig.Config != null)
+                {
+                    AppConfig.Config.Prompt = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         public MainWindow()

@@ -188,7 +188,8 @@ namespace HelpMeChat
                 var messages = new List<Message>();
 
                 // 添加系统提示
-                messages.Add(new Message(MessageRole.System, aiConfig.Prompt ?? string.Empty, null, null));
+                string combinedPrompt = (AppConfig.Config?.Prompt ?? string.Empty) + "\n\n" + (aiConfig.Prompt ?? string.Empty);
+                messages.Add(new Message(MessageRole.System, combinedPrompt, null, null));
 
                 // 添加历史对话
                 messages.Add(new Message(MessageRole.User, string.Join("\n", (Args?.History ?? new List<ChatMessage>()).Select(h => h.ToFormattedString())), null, null));
