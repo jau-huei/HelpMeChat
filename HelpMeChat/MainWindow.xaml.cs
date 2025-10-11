@@ -404,7 +404,6 @@ namespace HelpMeChat
         {
             SaveConfig();
             LoadConfig();
-            StatusTextBlock.Text = "配置已保存！";
         }
 
         /// <summary>
@@ -413,7 +412,6 @@ namespace HelpMeChat
         private void LoadConfig_Click(object sender, RoutedEventArgs e)
         {
             Config = LoadConfig();
-            StatusTextBlock.Text = "配置已加载！";
         }
 
         /// <summary>

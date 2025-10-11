@@ -262,7 +262,6 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatusTextBlock" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" Margin="0,0,10,0"/>
                     <Button Content="保存配置" Grid.Column="1" Click="SaveConfig_Click"/>
                 </Grid>
             </Grid>

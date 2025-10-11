@@ -1,7 +1,7 @@
 <Window x:Class="HelpMeChat.ReplySelectorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="选择回复" Height="300" Width="500" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True" ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        Title="选择回复" Height="400" Width="600" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True" ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Window.Resources>
         <!-- 主题配色 -->
         <SolidColorBrush x:Key="AccentBrush" Color="#10B981"/>
@@ -104,30 +104,40 @@
                         <TextBlock Text="预设回复" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
                     </TabItem.Header>
                     <StackPanel Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal">
-                            <ComboBox x:Name="ReplyComboBox" Width="300" SelectionChanged="ReplyComboBox_SelectionChanged"/>
-                            <Button x:Name="ConfirmButton" Content="确定" Click="ConfirmButton_Click"/>
-                        </StackPanel>
-                        <TextBlock x:Name="ValueTextBlock" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" MaxWidth="400"/>
+                        <Label Content="选择预设回复" Grid.Row="0" Margin="0,0,0,0"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="ReplyComboBox" Grid.Column="0" SelectionChanged="ReplyComboBox_SelectionChanged"/>
+                            <Button x:Name="ConfirmButton" Grid.Column="1" Content="使用回复" Click="ConfirmButton_Click"/>
+                        </Grid>
+                        <TextBlock x:Name="ValueTextBlock" Margin="4,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </TabItem>
                 <TabItem>
                     <TabItem.Header>
                         <TextBlock Text="AI 生成" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
                     </TabItem.Header>
-                    <StackPanel Orientation="Vertical">
-                        <Label Content="选择提示词" Margin="0,0,0,0"/>
-                        <ComboBox x:Name="PromptComboBox" Width="450" SelectionChanged="PromptComboBox_SelectionChanged"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="选择提示词" Grid.Row="0" Margin="0,0,0,0"/>
+                        <ComboBox x:Name="PromptComboBox" Grid.Row="1" SelectionChanged="PromptComboBox_SelectionChanged"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,6,0,0">
                             <Button x:Name="GenerateAiButton" Content="生成 AI 回复" Click="GenerateAiButton_Click"/>
                             <Button x:Name="CancelAiButton" Content="取消" Click="CancelAiButton_Click" IsEnabled="False"/>
-                            <Button x:Name="RegenerateAiButton" Content="重新生成" Click="RegenerateAiButton_Click" IsEnabled="False"/>
+                            <Button x:Name="ConfirmAiButton" Content="使用回复" Click="ConfirmAiButton_Click" IsEnabled="False" Cursor="Hand"/>
                         </StackPanel>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Height="80">
+                        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                             <TextBox x:Name="AiResponseTextBox" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                         </ScrollViewer>
-                        <Button x:Name="ConfirmAiButton" Content="确认 AI 回复" Click="ConfirmAiButton_Click" Margin="0,6,0,0" IsEnabled="False"/>
-                    </StackPanel>
+                    </Grid>
                 </TabItem>
             </TabControl>
         </Grid>

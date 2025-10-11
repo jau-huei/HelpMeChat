@@ -196,7 +196,6 @@ namespace HelpMeChat
             IsGenerating = true;
             GenerateAiButton.IsEnabled = false;
             CancelAiButton.IsEnabled = true;
-            RegenerateAiButton.IsEnabled = false;
             ConfirmAiButton.IsEnabled = false;
             AiResponseTextBox.IsReadOnly = true;
             AiResponseTextBox.Text = "正在生成...";
@@ -234,7 +233,6 @@ namespace HelpMeChat
                 }, Cts.Token);
                 AiResponse = AiResponseTextBox.Text;
                 ConfirmAiButton.IsEnabled = true;
-                RegenerateAiButton.IsEnabled = true;
             }
             catch (OperationCanceledException)
             {
@@ -259,17 +257,6 @@ namespace HelpMeChat
         private void CancelAiButton_Click(object sender, RoutedEventArgs e)
         {
             Cts?.Cancel();
-        }
-
-        /// <summary>
-        /// 重新生成 AI 回复
-        /// </summary>
-        private void RegenerateAiButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(SelectedPrompt))
-            {
-                GenerateAiButton_Click(sender, e);
-            }
         }
 
         /// <summary>
