@@ -277,9 +277,11 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="WeChatIdTextBox" Text="{Binding WeChatId}" Grid.Column="0" Margin="4"/>
                                 <Button Grid.Column="1" Content="获取密码" Click="GetWeChatKey_Click" Margin="4"/>
+                                <Button Grid.Column="2" Content="清除密码(禁用)" Click="ClearWeChatKey_Click" Margin="4"/>
                             </Grid>
                             <TextBlock Text="{Binding WeChatKeyDisplay}" Margin="4" Foreground="{StaticResource TextBrush}"/>
                             <Label Content="微信数据库路径"/>

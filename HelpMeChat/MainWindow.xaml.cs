@@ -236,6 +236,27 @@ namespace HelpMeChat
         }
 
         /// <summary>
+        /// 清除微信密码按钮点击
+        /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
+        private void ClearWeChatKey_Click(object sender, RoutedEventArgs e)
+        {
+            WeChatActualKey = null;
+            WeChatKeyDisplay = "未获取";
+            if (Monitor != null)
+            {
+                Monitor.WeChatActualKey = null;
+                Monitor.WeChatId = null;
+            }
+            var clearButton = FindName("ClearWeChatKeyButton") as Button;
+            if (clearButton != null)
+            {
+                clearButton.IsEnabled = false;
+            }
+        }
+
+        /// <summary>
         /// 异步获取微信数据库密码
         /// </summary>
         /// <param name="account">微信账号</param>
@@ -262,7 +283,14 @@ namespace HelpMeChat
                     }
                     // 显示前 12 位 + ****
                     string displayKey = key.Length >= 12 ? key.Substring(0, 12) + "****" : key + "****";
-                    Dispatcher.Invoke(() => WeChatKeyDisplay = displayKey);
+                    Dispatcher.Invoke(() => {
+                        WeChatKeyDisplay = displayKey;
+                        var clearButton = FindName("ClearWeChatKeyButton") as Button;
+                        if (clearButton != null)
+                        {
+                            clearButton.IsEnabled = true;
+                        }
+                    });
                 }
                 else
                 {
