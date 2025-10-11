@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace HelpMeChat
+namespace HelpMeChat.WeChatTool
 {
     /// <summary>
     /// 提供微信数据库相关的辅助功能。

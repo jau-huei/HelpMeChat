@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using Forms = System.Windows.Forms;
 using Drawing = System.Drawing;
 using Ollama;
+using HelpMeChat.WeChatTool;
 
 namespace HelpMeChat
 {

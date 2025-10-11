@@ -1,7 +1,8 @@
+using HelpMeChat.WeChatTool;
 using Microsoft.Data.Sqlite;
 using System.IO;
 
-namespace HelpMeChat
+namespace HelpMeChat.WeChatTool
 {
     /// <summary>
     /// 解密后的数据库路径类，实现 IDisposable 以自动删除文件
@@ -105,6 +106,47 @@ namespace HelpMeChat
                 }
             }
             return userNames;
+        }
+
+        /// <summary>
+        /// 根据 StrTalker 获取 MSG 表最新 n 条数据
+        /// </summary>
+        /// <param name="strTalker">StrTalker 字段值</param>
+        /// <param name="count">返回条数</param>
+        /// <returns>包含 Type、CreateTime、StrContent、BytesExtra、IsSender 的列表</returns>
+        public List<MsgRecord> GetLatestMessagesByTalker(string strTalker, int count)
+        {
+            var result = new List<MsgRecord>();
+            if (string.IsNullOrEmpty(MsgXXPath) || !File.Exists(MsgXXPath))
+            {
+                return result;
+            }
+            using (var connection = new SqliteConnection($"Data Source={MsgXXPath}"))
+            {
+                connection.Open();
+                string sql = @"SELECT Type, CreateTime, StrContent, BytesExtra, IsSender FROM MSG WHERE StrTalker = @strTalker ORDER BY CreateTime DESC LIMIT @count";
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@strTalker", strTalker);
+                    command.Parameters.AddWithValue("@count", count);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var msg = new MsgRecord
+                            {
+                                Type = reader.GetInt32(0),
+                                CreateTime = reader.GetInt32(1),
+                                StrContent = reader.IsDBNull(2) ? null : reader.GetString(2),
+                                BytesExtra = reader.IsDBNull(3) ? null : (byte[])reader[3],
+                                IsSender = reader.GetInt32(4)
+                            };
+                            result.Add(msg);
+                        }
+                    }
+                }
+            }
+            return result;
         }
     }
 }

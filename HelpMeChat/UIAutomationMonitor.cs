@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FlaUI.Core;
 using FlaUI.Core.Input;
 using System.Threading;
+using HelpMeChat.WeChatTool;
 
 namespace HelpMeChat
 {
@@ -318,7 +319,7 @@ namespace HelpMeChat
             if (userNames == null || userNames.Count != 1)
                 return GetChatHistory(wechatWindow);
 
-            
+            var msgRecords = wechatDb.GetLatestMessagesByTalker(userNames[0], 100);
 
             return GetChatHistory(wechatWindow);
         }

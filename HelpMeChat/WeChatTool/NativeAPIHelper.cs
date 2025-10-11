@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace HelpMeChat
+namespace HelpMeChat.WeChatTool
 {
     /// <summary>
     /// 提供原生API辅助功能的类，用于进程内存操作。

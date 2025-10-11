@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace HelpMeChat
+namespace HelpMeChat.WeChatTool
 {
     /// <summary>
     /// 提供与Windows内核API交互的原生方法封装类。
