@@ -32,7 +32,7 @@ namespace HelpMeChat
         /// <summary>
         /// 弹出窗口参数
         /// </summary>
-        private ShowPopupArgs? Args { get; set; }
+        private ShowPopupArgs Args { get; set; }
 
         /// <summary>
         /// Ollama API 客户端实例
@@ -74,9 +74,9 @@ namespace HelpMeChat
             Args = args;
 
             LoadMemories();
-            if (!MemoriesInstance.UserMemories.Any(m => m.UserName == Args.NickName))
+            if (!MemoriesInstance.UserMemories.Any(m => m.UserName == Args.NickName) && !string.IsNullOrEmpty(Args.NickName))
             {
-                MemoriesInstance.UserMemories.Add(new UserMemory { UserName = Args?.NickName });
+                MemoriesInstance.UserMemories.Add(new UserMemory { UserName = Args.NickName });
             }
 
             ReplyComboBox.ItemsSource = AppConfig.Config?.PresetReplies?.Keys;
@@ -204,7 +204,7 @@ namespace HelpMeChat
                 messages.Add(new Message(MessageRole.System, combinedPrompt, null, null));
 
                 // 添加历史对话
-                messages.Add(new Message(MessageRole.User, string.Join("\n", (Args?.History ?? new List<ChatMessage>()).Select(h => h.ToFormattedString())), null, null));
+                messages.Add(new Message(MessageRole.User, string.Join("\n", (Args.History ?? new List<ChatMessage>()).Select(h => h.ToFormattedString())), null, null));
 
                 var stream = Client.Chat.GenerateChatCompletionAsync(AppConfig.Config?.Model ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
 
@@ -363,7 +363,7 @@ namespace HelpMeChat
                     MemoriesInstance = new Memories();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // 处理加载错误，可以记录日志或使用默认值
                 MemoriesInstance = new Memories();
@@ -381,7 +381,7 @@ namespace HelpMeChat
                 string json = JsonSerializer.Serialize(MemoriesInstance, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
                 File.WriteAllText(memoriesFilePath, json);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // 处理保存错误，可以记录日志
             }
