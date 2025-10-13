@@ -333,6 +333,8 @@ namespace HelpMeChat
         /// <param name="e">路由事件参数</param>
         private void MainTabControl_Loaded(object sender, RoutedEventArgs e)
         {
+            MainTabControl.SelectionChanged -= MainTabControl_SelectionChanged;
+
             // 根据记忆设置标签页
             var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
             if (currentMemory != null && currentMemory.LastTab == "AI")
@@ -343,6 +345,8 @@ namespace HelpMeChat
             {
                 MainTabControl.SelectedIndex = 0;
             }
+
+            MainTabControl.SelectionChanged += MainTabControl_SelectionChanged;
         }
 
         /// <summary>
