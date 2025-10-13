@@ -1,4 +1,3 @@
-using HelpMeChat.WeChatTool;
 using Microsoft.Data.Sqlite;
 using System.IO;
 using ProtoBuf;

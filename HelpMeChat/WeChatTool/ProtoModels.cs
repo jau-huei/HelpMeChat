@@ -1,5 +1,4 @@
 using ProtoBuf;
-using System.Collections.Generic;
 
 namespace HelpMeChat.WeChatTool
 {

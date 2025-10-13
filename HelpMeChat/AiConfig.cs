@@ -1,5 +1,3 @@
-using System;
-
 namespace HelpMeChat
 {
     /// <summary>

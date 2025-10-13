@@ -1,16 +1,10 @@
 using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
-using System;
-using System.Linq;
 using FlaUI.Core.Definitions;
 using System.Windows.Forms;
 using FlaUI.Core.WindowsAPI;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using FlaUI.Core;
 using FlaUI.Core.Input;
-using System.Threading;
 using HelpMeChat.WeChatTool;
 
 namespace HelpMeChat
