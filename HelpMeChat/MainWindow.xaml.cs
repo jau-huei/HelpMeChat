@@ -349,7 +349,6 @@ namespace HelpMeChat
             // 确保属性不为 null
             AppConfig.Config.PresetReplies ??= new Dictionary<string, string>();
             AppConfig.Config.AiConfigs ??= new List<AiConfig>();
-            AppConfig.Config.UserMemories ??= new List<UserMemory>();
             PresetRepliesPrivate.Clear();
             if (AppConfig.Config.PresetReplies != null)
             {
@@ -385,8 +384,6 @@ namespace HelpMeChat
             {
                 AppConfig.Config.AiConfigs.Add(config);
             }
-            // 确保 UserMemories 不为 null
-            AppConfig.Config.UserMemories ??= new List<UserMemory>();
             string configPath = "config.json";
             string json = JsonSerializer.Serialize(AppConfig.Config, new JsonSerializerOptions
             {
@@ -620,7 +617,6 @@ namespace HelpMeChat
                     PopupWindow = new ReplySelectorWindow(args);
                     PopupWindow.ReplySelected += OnReplySelectedInternal;
                     PopupWindow.AiReplySelected += OnAiReplySelectedInternal;
-                    PopupWindow.OnCloseSave += () => SaveConfig();
 
                     // 获取当前显示器 DPI 信息
                     var source = PresentationSource.FromVisual(Application.Current.MainWindow);

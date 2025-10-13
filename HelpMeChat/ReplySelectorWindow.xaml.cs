@@ -3,6 +3,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Message = Ollama.Message;
+using System.IO;
+using System.Text.Json;
+using System.Text.Encodings.Web;
 
 namespace HelpMeChat
 {
@@ -42,11 +45,6 @@ namespace HelpMeChat
         private CancellationTokenSource? Cts { get; set; }
 
         /// <summary>
-        /// 当前用户的记忆
-        /// </summary>
-        private UserMemory? CurrentMemory { get; set; }
-
-        /// <summary>
         /// 当前选择的提示词
         /// </summary>
         private string SelectedPrompt { get; set; } = string.Empty;
@@ -62,6 +60,11 @@ namespace HelpMeChat
         private bool IsGenerating { get; set; } = false;
 
         /// <summary>
+        /// 用户记忆实例
+        /// </summary>
+        private Memories MemoriesInstance = new Memories();
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="args">弹出窗口参数</param>
@@ -70,19 +73,19 @@ namespace HelpMeChat
             InitializeComponent();
             Args = args;
 
-            CurrentMemory = AppConfig.Config?.UserMemories?.FirstOrDefault(m => m.UserName == Args.NickName);
-            if (CurrentMemory == null)
+            LoadMemories();
+            if (!MemoriesInstance.UserMemories.Any(m => m.UserName == Args.NickName))
             {
-                CurrentMemory = new UserMemory { UserName = Args?.NickName };
-                AppConfig.Config?.UserMemories?.Add(CurrentMemory);
+                MemoriesInstance.UserMemories.Add(new UserMemory { UserName = Args?.NickName });
             }
 
             ReplyComboBox.ItemsSource = AppConfig.Config?.PresetReplies?.Keys;
             if (AppConfig.Config?.PresetReplies != null && AppConfig.Config.PresetReplies.Count > 0)
             {
-                if (!string.IsNullOrEmpty(CurrentMemory.LastPresetReply) && AppConfig.Config.PresetReplies.ContainsKey(CurrentMemory.LastPresetReply))
+                var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
+                if (currentMemory != null && !string.IsNullOrEmpty(currentMemory.LastPresetReply) && AppConfig.Config.PresetReplies.ContainsKey(currentMemory.LastPresetReply))
                 {
-                    ReplyComboBox.SelectedItem = CurrentMemory.LastPresetReply;
+                    ReplyComboBox.SelectedItem = currentMemory.LastPresetReply;
                 }
                 else
                 {
@@ -99,9 +102,10 @@ namespace HelpMeChat
             PromptComboBox.ItemsSource = availablePrompts;
             if (availablePrompts != null && availablePrompts.Count > 0)
             {
-                if (!string.IsNullOrEmpty(CurrentMemory.LastAiConfig) && availablePrompts.Contains(CurrentMemory.LastAiConfig))
+                var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
+                if (currentMemory != null && !string.IsNullOrEmpty(currentMemory.LastAiConfig) && availablePrompts.Contains(currentMemory.LastAiConfig))
                 {
-                    PromptComboBox.SelectedItem = CurrentMemory.LastAiConfig;
+                    PromptComboBox.SelectedItem = currentMemory.LastAiConfig;
                 }
                 else
                 {
@@ -125,9 +129,13 @@ namespace HelpMeChat
                 ValueTextBlock.Text = "";
             }
             // 更新记忆
-            if (CurrentMemory != null && ReplyComboBox.SelectedItem is string selectedKeyMem)
+            if (ReplyComboBox.SelectedItem is string selectedKeyMem)
             {
-                CurrentMemory.LastPresetReply = selectedKeyMem;
+                var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
+                if (currentMemory != null)
+                {
+                    currentMemory.LastPresetReply = selectedKeyMem;
+                }
             }
         }
 
@@ -143,9 +151,13 @@ namespace HelpMeChat
                 SelectedPrompt = promptName;
             }
             // 更新记忆
-            if (CurrentMemory != null && PromptComboBox.SelectedItem is string selectedPrompt)
+            if (PromptComboBox.SelectedItem is string selectedPrompt)
             {
-                CurrentMemory.LastAiConfig = selectedPrompt;
+                var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
+                if (currentMemory != null)
+                {
+                    currentMemory.LastAiConfig = selectedPrompt;
+                }
             }
         }
 
@@ -291,6 +303,7 @@ namespace HelpMeChat
         private void ReplySelectorWindow_Closed(object? sender, EventArgs e)
         {
             OnCloseSave?.Invoke();
+            SaveMemories();
             Cts?.Cancel();
             Client?.Dispose();
             Cts?.Dispose();
@@ -303,9 +316,13 @@ namespace HelpMeChat
         /// <param name="e">选择改变事件参数</param>
         private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (CurrentMemory != null && sender is TabControl tabControl)
+            if (sender is TabControl tabControl)
             {
-                CurrentMemory.LastTab = tabControl.SelectedIndex == 1 ? "AI" : "Preset";
+                var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
+                if (currentMemory != null)
+                {
+                    currentMemory.LastTab = tabControl.SelectedIndex == 1 ? "AI" : "Preset";
+                }
             }
         }
 
@@ -317,13 +334,56 @@ namespace HelpMeChat
         private void MainTabControl_Loaded(object sender, RoutedEventArgs e)
         {
             // 根据记忆设置标签页
-            if (CurrentMemory != null && CurrentMemory.LastTab == "AI")
+            var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
+            if (currentMemory != null && currentMemory.LastTab == "AI")
             {
                 MainTabControl.SelectedIndex = 1;
             }
             else
             {
                 MainTabControl.SelectedIndex = 0;
+            }
+        }
+
+        /// <summary>
+        /// 加载用户记忆
+        /// </summary>
+        private void LoadMemories()
+        {
+            string memoriesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "memories.json");
+            try
+            {
+                if (File.Exists(memoriesFilePath))
+                {
+                    string json = File.ReadAllText(memoriesFilePath);
+                    MemoriesInstance = JsonSerializer.Deserialize<Memories>(json) ?? new Memories();
+                }
+                else
+                {
+                    MemoriesInstance = new Memories();
+                }
+            }
+            catch (Exception ex)
+            {
+                // 处理加载错误，可以记录日志或使用默认值
+                MemoriesInstance = new Memories();
+            }
+        }
+
+        /// <summary>
+        /// 保存用户记忆
+        /// </summary>
+        private void SaveMemories()
+        {
+            string memoriesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "memories.json");
+            try
+            {
+                string json = JsonSerializer.Serialize(MemoriesInstance, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+                File.WriteAllText(memoriesFilePath, json);
+            }
+            catch (Exception ex)
+            {
+                // 处理保存错误，可以记录日志
             }
         }
     }

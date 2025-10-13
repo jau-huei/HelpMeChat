@@ -58,11 +58,6 @@ namespace HelpMeChat
         /// </summary>
         public List<AiConfig>? AiConfigs { get; set; }
 
-        /// <summary>
-        /// 用户记忆列表
-        /// </summary>
-        public List<UserMemory>? UserMemories { get; set; }
-
         // 其他配置属性可以后续添加
     }
 }
