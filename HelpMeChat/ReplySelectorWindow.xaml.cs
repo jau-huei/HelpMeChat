@@ -1,6 +1,8 @@
 using Ollama;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Input;
 using Message = Ollama.Message;
 using System.IO;
@@ -182,65 +184,103 @@ namespace HelpMeChat
         /// <param name="e">路由事件参数</param>
         private async void GenerateAiButton_Click(object sender, RoutedEventArgs e)
         {
+            var button = sender as Button;
+            System.Windows.Shapes.Path path = button?.Content as System.Windows.Shapes.Path;
+            if (path == null) return;
+
             if (string.IsNullOrEmpty(SelectedPrompt) || AppConfig.Config?.AiConfigs == null) return;
             var aiConfig = AppConfig.Config.AiConfigs.FirstOrDefault(c => c.Name == SelectedPrompt);
             if (aiConfig == null) return;
 
-            IsGenerating = true;
-            GenerateAiButton.IsEnabled = false;
-            CancelAiButton.IsEnabled = true;
-            ConfirmAiButton.IsEnabled = false;
-            AiResponseTextBox.IsReadOnly = true;
-            AiResponseTextBox.Text = "正在生成...";
-
-            Cts = new CancellationTokenSource();
-            try
+            if (!IsGenerating)
             {
-                Client ??= new OllamaApiClient(baseUri: new Uri(AppConfig.Config.OllamaService!));
-                var messages = new List<Message>();
+                // 开始生成
+                IsGenerating = true;
+                path.Data = Geometry.Parse("M 0 0 L 5 0 L 5 20 L 0 20 Z M 10 0 L 15 0 L 15 20 L 10 20 Z"); // 暂停图形
+                ConfirmAiButton.IsEnabled = false;
+                AiResponseTextBox.IsReadOnly = true;
+                AiResponseTextBox.Text = "正在生成...";
 
-                // 添加系统提示
-                string combinedPrompt = (AppConfig.Config?.Prompt ?? string.Empty) + "\n\n" + (aiConfig.Prompt ?? string.Empty);
-                messages.Add(new Message(MessageRole.System, combinedPrompt, null, null));
-
-                // 添加历史对话
-                messages.Add(new Message(MessageRole.User, string.Join("\n", (Args.History ?? new List<ChatMessage>()).Select(h => h.ToFormattedString())), null, null));
-
-                var stream = Client.Chat.GenerateChatCompletionAsync(AppConfig.Config?.Model ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
-
-                // 在后台线程处理流，使用同步 Invoke 将每个 chunk 追加到 UI，确保 UI 有机会渲染
-                await Task.Run(async () =>
+                Cts = new CancellationTokenSource();
+                try
                 {
-                    await foreach (GenerateChatCompletionResponse resp in stream.WithCancellation(Cts.Token))
-                    {
-                        var chunk = resp.Message.Content;
-                        if (string.IsNullOrEmpty(chunk)) continue;
-                        if (chunk == ">>") continue;
+                    Client ??= new OllamaApiClient(baseUri: new Uri(AppConfig.Config.OllamaService!));
+                    var messages = new List<Message>();
 
-                        // 同步在 UI 线程执行追加，这样文本更新会立即被应用到可视树
-                        Application.Current.Dispatcher.Invoke(() =>
+                    // 添加系统提示
+                    string combinedPrompt = (AppConfig.Config?.Prompt ?? string.Empty) + "\n\n" + (aiConfig.Prompt ?? string.Empty);
+
+                    // 添加自定义提示词
+                    string customPrompt = CustomPromptTextBox.Text.Trim();
+                    if (!string.IsNullOrEmpty(customPrompt))
+                    {
+                        combinedPrompt += "\n\n" + customPrompt;
+                        // 添加到记忆列表
+                        var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
+                        if (currentMemory != null)
                         {
-                            if (AiResponseTextBox.Text == "正在生成...") AiResponseTextBox.Text = "";
-                            AiResponseTextBox.Text += chunk;
-                        });
+                            if (!MemoriesInstance.CustomPrompts.Contains(customPrompt))
+                            {
+                                MemoriesInstance.CustomPrompts.Add(customPrompt);
+                                if (MemoriesInstance.CustomPrompts.Count > 10)
+                                {
+                                    MemoriesInstance.CustomPrompts.RemoveAt(0);
+                                }
+                            }
+                        }
                     }
-                }, Cts.Token);
-                AiResponse = AiResponseTextBox.Text;
-                ConfirmAiButton.IsEnabled = true;
+
+                    messages.Add(new Message(MessageRole.System, combinedPrompt, null, null));
+
+                    // 添加历史对话
+                    messages.Add(new Message(MessageRole.User, string.Join("\n", (Args.History ?? new List<ChatMessage>()).Select(h => h.ToFormattedString())), null, null));
+
+                    var stream = Client.Chat.GenerateChatCompletionAsync(AppConfig.Config?.Model ?? string.Empty, messages, stream: true, cancellationToken: Cts.Token);
+
+                    // 在后台线程处理流，使用同步 Invoke 将每个 chunk 追加到 UI，确保 UI 有机会渲染
+                    await Task.Run(async () =>
+                    {
+                        await foreach (GenerateChatCompletionResponse resp in stream.WithCancellation(Cts.Token))
+                        {
+                            var chunk = resp.Message.Content;
+                            if (string.IsNullOrEmpty(chunk)) continue;
+                            if (chunk == ">>") continue;
+
+                            // 同步在 UI 线程执行追加，这样文本更新会立即被应用到可视树
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                if (AiResponseTextBox.Text == "正在生成...") AiResponseTextBox.Text = "";
+                                AiResponseTextBox.Text += chunk;
+                            });
+                        }
+                    }, Cts.Token);
+                    AiResponse = AiResponseTextBox.Text;
+                    ConfirmAiButton.IsEnabled = true;
+                }
+                catch (OperationCanceledException)
+                {
+                    AiResponseTextBox.Text = "已取消";
+                }
+                catch (Exception ex)
+                {
+                    AiResponseTextBox.Text = $"错误: {ex.Message}";
+                }
+                finally
+                {
+                    IsGenerating = false;
+                    path.Data = Geometry.Parse("M 0 0 L 0 20 L 15 10 Z"); // 播放图形
+                    GenerateAiButton.IsEnabled = true;
+                    AiResponseTextBox.IsReadOnly = false;
+                }
             }
-            catch (OperationCanceledException)
+            else
             {
-                AiResponseTextBox.Text = "已取消";
-            }
-            catch (Exception ex)
-            {
-                AiResponseTextBox.Text = $"错误: {ex.Message}";
-            }
-            finally
-            {
+                // 取消生成
+                Cts?.Cancel();
                 IsGenerating = false;
+                path.Data = Geometry.Parse("M 0 0 L 0 20 L 15 10 Z"); // 播放图形
                 GenerateAiButton.IsEnabled = true;
-                CancelAiButton.IsEnabled = false;
+                ConfirmAiButton.IsEnabled = !string.IsNullOrEmpty(AiResponseTextBox.Text) && AiResponseTextBox.Text != "正在生成..." && AiResponseTextBox.Text != "已取消";
                 AiResponseTextBox.IsReadOnly = false;
             }
         }
@@ -354,7 +394,7 @@ namespace HelpMeChat
         /// </summary>
         private void LoadMemories()
         {
-            string memoriesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "memories.json");
+            string memoriesFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "memories.json");
             try
             {
                 if (File.Exists(memoriesFilePath))
@@ -379,7 +419,7 @@ namespace HelpMeChat
         /// </summary>
         private void SaveMemories()
         {
-            string memoriesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "memories.json");
+            string memoriesFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "memories.json");
             try
             {
                 string json = JsonSerializer.Serialize(MemoriesInstance, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
