@@ -61,9 +61,19 @@ namespace HelpMeChat
         private bool IsGenerating { get; set; } = false;
 
         /// <summary>
+        /// 当前历史提示索引
+        /// </summary>
+        private int CurrentHistoryIndex { get; set; } = -1;
+
+        /// <summary>
+        /// 保存的当前输入文本
+        /// </summary>
+        private string SavedCurrentInput { get; set; } = "";
+
+        /// <summary>
         /// 用户记忆实例
         /// </summary>
-        private Memories MemoriesInstance = new Memories();
+        private Memories MemoriesInstance { get; set; } = new Memories();
 
         /// <summary>
         /// 构造函数
@@ -428,6 +438,76 @@ namespace HelpMeChat
             {
                 // 处理保存错误，可以记录日志
             }
+        }
+
+        /// <summary>
+        /// CustomPromptTextBox 键盘预览事件，用于历史提示切换
+        /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">键盘事件参数</param>
+        private void CustomPromptTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            int caretIndex = CustomPromptTextBox.CaretIndex;
+            int lineIndex = CustomPromptTextBox.GetLineIndexFromCharacterIndex(caretIndex);
+            int totalLines = CustomPromptTextBox.LineCount;
+
+            if (e.Key == Key.Up)
+            {
+                // 只有当光标在第一行时，才切换历史
+                if (lineIndex == 0 && MemoriesInstance.CustomPrompts.Count > 0)
+                {
+                    if (CurrentHistoryIndex == -1)
+                    {
+                        // 第一次按上键，保存当前输入
+                        SavedCurrentInput = CustomPromptTextBox.Text;
+                        CurrentHistoryIndex = MemoriesInstance.CustomPrompts.Count - 1;
+                    }
+                    else if (CurrentHistoryIndex > 0)
+                    {
+                        CurrentHistoryIndex--;
+                    }
+                    CustomPromptTextBox.Text = MemoriesInstance.CustomPrompts[CurrentHistoryIndex];
+                    CustomPromptTextBox.CaretIndex = CustomPromptTextBox.Text.Length;
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key == Key.Down)
+            {
+                // 只有当光标在最后一行时，才切换历史
+                if (lineIndex == totalLines - 1)
+                {
+                    if (CurrentHistoryIndex >= 0 && CurrentHistoryIndex < MemoriesInstance.CustomPrompts.Count - 1)
+                    {
+                        CurrentHistoryIndex++;
+                        CustomPromptTextBox.Text = MemoriesInstance.CustomPrompts[CurrentHistoryIndex];
+                        CustomPromptTextBox.CaretIndex = CustomPromptTextBox.Text.Length;
+                    }
+                    else
+                    {
+                        // 到底部，恢复到保存的当前输入
+                        CurrentHistoryIndex = -1;
+                        CustomPromptTextBox.Text = SavedCurrentInput;
+                        CustomPromptTextBox.CaretIndex = CustomPromptTextBox.Text.Length;
+                    }
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Home && e.Key != Key.End && e.Key != Key.Back && e.Key != Key.Delete && !KeyIsModifier(e.Key))
+            {
+                // 当用户输入新字符时，重置历史索引
+                CurrentHistoryIndex = -1;
+                SavedCurrentInput = CustomPromptTextBox.Text;
+            }
+        }
+
+        /// <summary>
+        /// 检查按键是否为修饰键
+        /// </summary>
+        /// <param name="key">按键</param>
+        /// <returns>是否为修饰键</returns>
+        private bool KeyIsModifier(Key key)
+        {
+            return key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftShift || key == Key.RightShift || key == Key.LeftAlt || key == Key.RightAlt;
         }
     }
 }

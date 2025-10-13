@@ -74,7 +74,7 @@
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Margin" Value="6"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#000000" Opacity="0.1"/>
@@ -129,19 +129,21 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Label Content="选择提示词" Grid.Row="0" Margin="0,0,0,0"/>
                         <ComboBox x:Name="PromptComboBox" Grid.Row="1" SelectionChanged="PromptComboBox_SelectionChanged"/>
                         <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                             <TextBox x:Name="AiResponseTextBox" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                         </ScrollViewer>
-                        <Grid Grid.Row="4" Margin="0,6,0,0">
+                        <GridSplitter Grid.Row="4" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="{StaticResource BorderBrushColor}" ResizeDirection="Rows"/>
+                        <Grid Grid.Row="5" Margin="0,6,0,0" MinHeight="80">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="CustomPromptTextBox" Grid.Column="0" Margin="0,0,10,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                            <TextBox x:Name="CustomPromptTextBox" Grid.Column="0" Margin="0,0,10,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" PreviewKeyDown="CustomPromptTextBox_PreviewKeyDown"/>
                             <Button x:Name="GenerateAiButton" Grid.Column="1" Click="GenerateAiButton_Click" MinWidth="50">
                                 <Path x:Name="PlayPausePath" Data="M 0 0 L 0 20 L 15 10 Z" Fill="White" Stretch="Uniform"/>
                             </Button>
