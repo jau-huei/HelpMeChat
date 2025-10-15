@@ -216,13 +216,24 @@ namespace HelpMeChat
                     var messages = new List<Message>();
 
                     // 添加系统提示
-                    string combinedPrompt = (AppConfig.Config?.Prompt ?? string.Empty) + "\n\n" + (aiConfig.Prompt ?? string.Empty);
+                    string combinedPrompt = "";
+                    if (!string.IsNullOrEmpty(AppConfig.Config?.Prompt))
+                    {
+                        combinedPrompt = $"[系统通用指导(优先级最低)]\n{AppConfig.Config.Prompt}";
+                    }
+
+                    // 添加关系特定提示
+                    if (!string.IsNullOrEmpty(aiConfig.Prompt))
+                    {
+                        if (!string.IsNullOrEmpty(combinedPrompt)) combinedPrompt += "\n\n";
+                        combinedPrompt += $"[特定场景指导(优先级次之)]\n{aiConfig.Prompt}";
+                    }
 
                     // 添加自定义提示词
                     string customPrompt = CustomPromptTextBox.Text.Trim();
                     if (!string.IsNullOrEmpty(customPrompt))
                     {
-                        combinedPrompt += "\n\n" + customPrompt;
+                        combinedPrompt += $"\n\n[用户自定义指导(优先级最高)]\n{customPrompt}";
                         // 添加到记忆列表
                         var currentMemory = MemoriesInstance.UserMemories.FirstOrDefault(m => m.UserName == Args.NickName);
                         if (currentMemory != null)
@@ -238,10 +249,11 @@ namespace HelpMeChat
                         }
                     }
 
-                    // 添加系统角色消息
+                    // 添加角色描述
                     if (!string.IsNullOrEmpty(AppConfig.Config?.WeChatUserName))
                     {
-                        combinedPrompt += $"\n\n你现在的角色是微信用户 {AppConfig.Config.WeChatUserName} 的智能助手，请根据他的需求提供帮助。";
+                        if (!string.IsNullOrEmpty(combinedPrompt)) combinedPrompt += "\n\n";
+                        combinedPrompt += $"[角色设定]\n你现在是微信用户 {AppConfig.Config.WeChatUserName} 的智能助手。你的任务是根据聊天历史和用户输入，生成合适的微信回复。使用上述指导原则，确保回复自然、有效且符合人际沟通技巧。";
                     }
 
                     messages.Add(new Message(MessageRole.System, combinedPrompt, null, null));
