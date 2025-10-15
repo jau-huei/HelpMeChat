@@ -1,7 +1,7 @@
 <Window x:Class="HelpMeChat.ReplySelectorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="选择回复" Height="400" Width="600" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True" ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        Title="选择回复" Height="400" Width="600" Topmost="True" ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Window.Resources>
         <!-- 主题配色 -->
         <SolidColorBrush x:Key="AccentBrush" Color="#10B981"/>
@@ -74,86 +74,70 @@
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Margin" Value="6"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
-            <Setter Property="BorderThickness" Value="2"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#000000" Opacity="0.1"/>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
     </Window.Resources>
 
-    <Border Style="{StaticResource CardStyle}">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="20"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="选择回复" FontWeight="Bold" Margin="0,0,0,6" Foreground="{StaticResource TextBrush}" Grid.Column="0"/>
-                <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click" Grid.Column="1" Width="20" MinWidth="20" Height="20" Margin="0,0,0,0"/>
-            </Grid>
-            <TabControl Grid.Row="1" Name="MainTabControl" Loaded="MainTabControl_Loaded">
-                <TabItem>
-                    <TabItem.Header>
-                        <TextBlock Text="预设回复" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                    </TabItem.Header>
-                    <StackPanel Orientation="Vertical">
-                        <Label Content="选择预设回复" Grid.Row="0" Margin="0,0,0,0"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ComboBox x:Name="ReplyComboBox" Grid.Column="0" SelectionChanged="ReplyComboBox_SelectionChanged"/>
-                            <Button x:Name="ConfirmButton" Grid.Column="2" Click="ConfirmButton_Click" Cursor="Hand" MinWidth="50">
-                                <Path Data="M2,8 L6,12 L14,2" Stroke="White" StrokeThickness="2" StrokeLineJoin="Round" Stretch="Uniform"/>
-                            </Button>
-                        </Grid>
-                        <TextBlock x:Name="ValueTextBlock" Margin="4,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
-                </TabItem>
-                <TabItem>
-                    <TabItem.Header>
-                        <TextBlock Text="AI 生成" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                    </TabItem.Header>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0" Name="MainTabControl" Loaded="MainTabControl_Loaded">
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="预设回复" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                </TabItem.Header>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="选择预设回复" Grid.Row="0" Margin="0,0,0,0"/>
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Label Content="选择提示词" Grid.Row="0" Margin="0,0,0,0"/>
-                        <ComboBox x:Name="PromptComboBox" Grid.Row="1" SelectionChanged="PromptComboBox_SelectionChanged"/>
-                        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
-                            <TextBox x:Name="AiResponseTextBox" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-                        </ScrollViewer>
-                        <GridSplitter Grid.Row="4" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="{StaticResource BorderBrushColor}" ResizeDirection="Rows"/>
-                        <Grid Grid.Row="5" Margin="0,6,0,0" MinHeight="80">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="CustomPromptTextBox" Grid.Column="0" Margin="0,0,10,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" PreviewKeyDown="CustomPromptTextBox_PreviewKeyDown"/>
-                            <Button x:Name="GenerateAiButton" Grid.Column="1" Click="GenerateAiButton_Click" MinWidth="50">
-                                <Path x:Name="PlayPausePath" Data="M 0 0 L 0 20 L 15 10 Z" Fill="White" Stretch="Uniform"/>
-                            </Button>
-                            <Button x:Name="ConfirmAiButton" Grid.Column="2" Click="ConfirmAiButton_Click" IsEnabled="False" Cursor="Hand" MinWidth="50">
-                                <Path Data="M2,8 L6,12 L14,2" Stroke="White" StrokeThickness="2" StrokeLineJoin="Round" Stretch="Uniform"/>
-                            </Button>
-                        </Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="ReplyComboBox" Grid.Column="0" SelectionChanged="ReplyComboBox_SelectionChanged"/>
+                        <Button x:Name="ConfirmButton" Grid.Column="2" Click="ConfirmButton_Click" Cursor="Hand" MinWidth="50">
+                            <Path Data="M2,8 L6,12 L14,2" Stroke="White" StrokeThickness="2" StrokeLineJoin="Round" Stretch="Uniform"/>
+                        </Button>
                     </Grid>
-                </TabItem>
-            </TabControl>
-        </Grid>
-    </Border>
+                    <TextBlock x:Name="ValueTextBlock" Margin="4,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="AI 生成" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                </TabItem.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Label Content="选择提示词" Grid.Row="0" Margin="0,0,0,0"/>
+                    <ComboBox x:Name="PromptComboBox" Grid.Row="1" SelectionChanged="PromptComboBox_SelectionChanged"/>
+                    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+                        <TextBox x:Name="AiResponseTextBox" Margin="0,6,0,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                    </ScrollViewer>
+                    <GridSplitter Grid.Row="4" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="{StaticResource BorderBrushColor}" ResizeDirection="Rows"/>
+                    <Grid Grid.Row="5" Margin="0,6,0,0" MinHeight="80">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="CustomPromptTextBox" Grid.Column="0" Margin="0,0,10,0" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Background="#F3F4F6" Padding="4" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" PreviewKeyDown="CustomPromptTextBox_PreviewKeyDown"/>
+                        <Button x:Name="GenerateAiButton" Grid.Column="1" Click="GenerateAiButton_Click" MinWidth="50">
+                            <Path x:Name="PlayPausePath" Data="M 0 0 L 0 20 L 15 10 Z" Fill="White" Stretch="Uniform"/>
+                        </Button>
+                        <Button x:Name="ConfirmAiButton" Grid.Column="2" Click="ConfirmAiButton_Click" IsEnabled="False" Cursor="Hand" MinWidth="50">
+                            <Path Data="M2,8 L6,12 L14,2" Stroke="White" StrokeThickness="2" StrokeLineJoin="Round" Stretch="Uniform"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
 </Window>

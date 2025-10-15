@@ -125,7 +125,8 @@
                         </TabItem.Header>
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*" MinHeight="120"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="5"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
@@ -164,18 +165,27 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
 
-                            <Border Grid.Row="1" Background="#F3F4F6" Padding="8" Margin="0,6,0,0">
-                                <StackPanel Orientation="Vertical">
-                                    <Label Content="显示名称"/>
-                                    <TextBox x:Name="KeyTextBox" Margin="4"/>
-                                    <Label Content="回复内容"/>
-                                    <TextBox x:Name="ValueTextBox" Margin="4" Height="80" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-                                    <StackPanel Orientation="Horizontal">
+                            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="{StaticResource BorderBrushColor}" ResizeDirection="Rows"/>
+
+                            <Border Grid.Row="2" Background="#F3F4F6" Padding="8" Margin="0,6,0,0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Label Content="显示名称" Grid.Row="0"/>
+                                    <TextBox x:Name="KeyTextBox" Grid.Row="1" Margin="4"/>
+                                    <Label Content="回复内容" Grid.Row="2"/>
+                                    <TextBox x:Name="ValueTextBox" Grid.Row="3" Margin="4" MinHeight="80" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                                    <StackPanel Orientation="Horizontal" Grid.Row="4">
                                         <Button Content="添加" Click="AddReply_Click"/>
                                         <Button Content="修改" Click="ModifyReply_Click"/>
                                         <Button Content="删除" Click="RemoveReply_Click"/>
                                     </StackPanel>
-                                </StackPanel>
+                                </Grid>
                             </Border>
                         </Grid>
                     </TabItem>
@@ -184,15 +194,24 @@
                             <TextBlock Text="通用 AI 设置" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextBrush}"/>
                         </TabItem.Header>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Orientation="Vertical" Margin="6">
-                                <Label Content="微信用户名"/>
-                                <TextBox Text="{Binding WeChatUserName}" Margin="4"/>
+                            <Grid Margin="6">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Label Content="微信用户名" Grid.Row="0"/>
+                                <TextBox Text="{Binding WeChatUserName}" Grid.Row="1" Margin="4"/>
 
-                                <Label Content="Ollama 服务地址"/>
-                                <TextBox Text="{Binding OllamaService}" Margin="4"/>
+                                <Label Content="Ollama 服务地址" Grid.Row="2"/>
+                                <TextBox Text="{Binding OllamaService}" Grid.Row="3" Margin="4"/>
 
-                                <Label Content="模型名称"/>
-                                <Grid>
+                                <Label Content="模型名称" Grid.Row="4"/>
+                                <Grid Grid.Row="5">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
@@ -201,9 +220,9 @@
                                     <Button Grid.Column="1" Content="刷新模型" Click="RefreshModels_Click"/>
                                 </Grid>
 
-                                <Label Content="一般提示词"/>
-                                <TextBox Text="{Binding Prompt}" Margin="4" Height="120" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-                            </StackPanel>
+                                <Label Content="一般提示词" Grid.Row="6"/>
+                                <TextBox Text="{Binding Prompt}" Grid.Row="7" Margin="4" MinHeight="120" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                            </Grid>
                         </ScrollViewer>
                     </TabItem>
                     <TabItem>
@@ -212,7 +231,8 @@
                         </TabItem.Header>
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*" MinHeight="120"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="5"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
@@ -251,22 +271,32 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
 
-                            <Border Grid.Row="1" Background="#F3F4F6" Padding="8" Margin="0,6,0,0">
-                                <StackPanel Orientation="Vertical">
-                                    <Label Content="设定名称"/>
-                                    <TextBox x:Name="AiNameTextBox" Margin="4"/>
-                                    <StackPanel Orientation="Horizontal">
+                            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="{StaticResource BorderBrushColor}" ResizeDirection="Rows"/>
+
+                            <Border Grid.Row="2" Background="#F3F4F6" Padding="8" Margin="0,6,0,0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Label Content="设定名称" Grid.Row="0"/>
+                                    <TextBox x:Name="AiNameTextBox" Grid.Row="1" Margin="4"/>
+                                    <StackPanel Orientation="Horizontal" Grid.Row="2">
                                         <Label Content="是否共享" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="AiIsSharedCheckBox" Margin="4" VerticalAlignment="Center"/>
                                     </StackPanel>
-                                    <Label Content="提示词"/>
-                                    <TextBox x:Name="AiPromptTextBox" Margin="4" Height="80" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-                                    <StackPanel Orientation="Horizontal">
+                                    <Label Content="提示词" Grid.Row="3"/>
+                                    <TextBox x:Name="AiPromptTextBox" Grid.Row="4" Margin="4" MinHeight="80" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                                    <StackPanel Orientation="Horizontal" Grid.Row="5">
                                         <Button Content="添加" Click="AddAiConfig_Click"/>
                                         <Button Content="修改" Click="ModifyAiConfig_Click"/>
                                         <Button Content="删除" Click="RemoveAiConfig_Click"/>
                                     </StackPanel>
-                                </StackPanel>
+                                </Grid>
                             </Border>
                         </Grid>
                     </TabItem>

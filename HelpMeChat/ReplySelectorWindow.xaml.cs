@@ -187,16 +187,10 @@ namespace HelpMeChat
         }
 
         /// <summary>
-        /// 生成 AI 回复按钮点击事件
+        /// 执行 AI 生成
         /// </summary>
-        /// <param name="sender">事件发送者</param>
-        /// <param name="e">路由事件参数</param>
-        private async void GenerateAiButton_Click(object sender, RoutedEventArgs e)
+        private async Task PerformAiGeneration()
         {
-            var button = sender as Button;
-            System.Windows.Shapes.Path path = button?.Content as System.Windows.Shapes.Path;
-            if (path == null) return;
-
             if (string.IsNullOrEmpty(SelectedPrompt) || AppConfig.Config?.AiConfigs == null) return;
             var aiConfig = AppConfig.Config.AiConfigs.FirstOrDefault(c => c.Name == SelectedPrompt);
             if (aiConfig == null) return;
@@ -205,7 +199,12 @@ namespace HelpMeChat
             {
                 // 开始生成
                 IsGenerating = true;
-                path.Data = Geometry.Parse("M 0 0 L 5 0 L 5 20 L 0 20 Z M 10 0 L 15 0 L 15 20 L 10 20 Z"); // 暂停图形
+                // 更新按钮状态
+                var path = GenerateAiButton.Content as System.Windows.Shapes.Path;
+                if (path != null)
+                {
+                    path.Data = Geometry.Parse("M 0 0 L 5 0 L 5 20 L 0 20 Z M 10 0 L 15 0 L 15 20 L 10 20 Z"); // 暂停图形
+                }
                 ConfirmAiButton.IsEnabled = false;
                 AiResponseTextBox.IsReadOnly = true;
                 AiResponseTextBox.Text = "正在生成...";
@@ -283,7 +282,10 @@ namespace HelpMeChat
                 finally
                 {
                     IsGenerating = false;
-                    path.Data = Geometry.Parse("M 0 0 L 0 20 L 15 10 Z"); // 播放图形
+                    if (path != null)
+                    {
+                        path.Data = Geometry.Parse("M 0 0 L 0 20 L 15 10 Z"); // 播放图形
+                    }
                     GenerateAiButton.IsEnabled = true;
                     AiResponseTextBox.IsReadOnly = false;
                 }
@@ -293,11 +295,25 @@ namespace HelpMeChat
                 // 取消生成
                 Cts?.Cancel();
                 IsGenerating = false;
-                path.Data = Geometry.Parse("M 0 0 L 0 20 L 15 10 Z"); // 播放图形
+                var path = GenerateAiButton.Content as System.Windows.Shapes.Path;
+                if (path != null)
+                {
+                    path.Data = Geometry.Parse("M 0 0 L 0 20 L 15 10 Z"); // 播放图形
+                }
                 GenerateAiButton.IsEnabled = true;
                 ConfirmAiButton.IsEnabled = !string.IsNullOrEmpty(AiResponseTextBox.Text) && AiResponseTextBox.Text != "正在生成..." && AiResponseTextBox.Text != "已取消";
                 AiResponseTextBox.IsReadOnly = false;
             }
+        }
+
+        /// <summary>
+        /// 生成 AI 回复按钮点击事件
+        /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">路由事件参数</param>
+        private async void GenerateAiButton_Click(object sender, RoutedEventArgs e)
+        {
+            await PerformAiGeneration();
         }
 
         /// <summary>
@@ -336,18 +352,6 @@ namespace HelpMeChat
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
-        }
-
-        /// <summary>
-        /// 关闭按钮点击事件
-        /// </summary>
-        /// <param name="sender">事件发送者</param>
-        /// <param name="e">路由事件参数</param>
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            OnCloseSave?.Invoke();
-            Cts?.Cancel();
-            this.Close();
         }
 
         /// <summary>
@@ -447,15 +451,31 @@ namespace HelpMeChat
         }
 
         /// <summary>
-        /// CustomPromptTextBox 键盘预览事件，用于历史提示切换
+        /// CustomPromptTextBox 键盘预览事件，用于历史提示切换和发送
         /// </summary>
         /// <param name="sender">事件发送者</param>
         /// <param name="e">键盘事件参数</param>
-        private void CustomPromptTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        private async void CustomPromptTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             int caretIndex = CustomPromptTextBox.CaretIndex;
             int lineIndex = CustomPromptTextBox.GetLineIndexFromCharacterIndex(caretIndex);
             int totalLines = CustomPromptTextBox.LineCount;
+
+            if (e.Key == Key.Enter)
+            {
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+                {
+                    // Shift+Enter: 允许换行，不处理
+                    // 默认行为会换行
+                }
+                else
+                {
+                    // Enter: 发送 AI 生成
+                    e.Handled = true;
+                    await PerformAiGeneration();
+                }
+                return;
+            }
 
             if (e.Key == Key.Up)
             {
