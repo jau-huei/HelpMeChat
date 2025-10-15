@@ -239,6 +239,12 @@ namespace HelpMeChat
                         }
                     }
 
+                    // 添加系统角色消息
+                    if (!string.IsNullOrEmpty(AppConfig.Config?.WeChatUserName))
+                    {
+                        combinedPrompt += $"\n\n你现在的角色是微信用户 {AppConfig.Config.WeChatUserName} 的智能助手，请根据他的需求提供帮助。";
+                    }
+
                     messages.Add(new Message(MessageRole.System, combinedPrompt, null, null));
 
                     // 添加历史对话
